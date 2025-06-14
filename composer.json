@@ -1,0 +1,15 @@
+{
+  "name": "eugene-erg/icu-message-format-parser",
+  "description": "ICU Message Format parser",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "EugeneErg\\ICUMessageFormatParser\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.2",
+    "eugene-erg/string-parser": "^1.0"
+  }
+}
