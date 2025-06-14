@@ -159,7 +159,7 @@ readonly class Parser
     /**
      * @param array<Value|Result> $children
      */
-    public function getTemplateOptions(array $children): array
+    private function getTemplateOptions(array $children): array
     {
         $result = [];
         $message = '';
