@@ -19,7 +19,11 @@ final readonly class Select implements ICUTypeInterface
         $other = $options['other'];
         unset($options['other']);
 
-        return new self($value, $other, $options);
+        return new self(
+            $value,
+            self::setVarName('#', $value, $other),
+            array_map(static fn (array $option) => self::setVarName('#', $value, $option), $options),
+        );
     }
 
     public function __toString(): string
@@ -33,5 +37,17 @@ final readonly class Select implements ICUTypeInterface
         $options[] = 'other {' . implode('', $this->other) . '}';
 
         return '{' . $this->value . ', select' . ($options === [] ? '' : ', ' . implode(' ', $options)) . '}';
+    }
+
+    private static function setVarName(string $from, string $to, ?array $option): ?array
+    {
+        return $option === null
+            ? null
+            : array_map(
+                static fn (mixed $item) => $item instanceof Variable && $item->value === $from
+                    ? new Variable($to)
+                    : $item,
+                $option,
+            );
     }
 }

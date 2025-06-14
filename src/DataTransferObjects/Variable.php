@@ -17,6 +17,6 @@ final readonly class Variable implements ICUTypeInterface
 
     public function __toString(): string
     {
-        return '{' . $this->value . '}';
+        return $this->value === '#' ? '#' : '{' . $this->value . '}';
     }
 }

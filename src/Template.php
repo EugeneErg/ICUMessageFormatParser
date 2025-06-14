@@ -38,7 +38,7 @@ $root = new Root(
                     includeStart: true,
                     includeEnd: false,
                     save: null,
-                    exception: '[^a-zA-Z_]',
+                    exception: '[^a-zA-Z_0-9]',
                     children: [
                         Parser::TYPE => new Item(
                             startPattern: ',',
@@ -83,6 +83,13 @@ $root = new Root(
                                                                     save: true,
                                                                     exclude: '\'',
                                                                     children: [Parser::QUOTA => $quota],
+                                                                ),
+                                                                Parser::VARIABLE => new Item(
+                                                                    startPattern: '#',
+                                                                    endPattern: '.',
+                                                                    includeStart: true,
+                                                                    includeEnd: true,
+                                                                    save: true,
                                                                 ),
                                                                 Parser::OBJECT => &$class,
                                                             ],

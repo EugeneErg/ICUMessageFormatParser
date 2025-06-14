@@ -15,12 +15,12 @@ final readonly class SelectOrdinal implements ICUTypeInterface
 
     /**
      * @param string $value
+     * @param ICUTypeInterface[]|null $other
      * @param ICUTypeInterface[]|null $zero
      * @param ICUTypeInterface[]|null $one
      * @param ICUTypeInterface[]|null $two
      * @param ICUTypeInterface[]|null $few
      * @param ICUTypeInterface[]|null $many
-     * @param ICUTypeInterface[]|null $other
      * @param ICUTypeInterface[][] ...$numbers
      */
     public function __construct(
@@ -38,12 +38,12 @@ final readonly class SelectOrdinal implements ICUTypeInterface
 
     public static function create(string $value, array $options = []): ICUTypeInterface
     {
-        $zero = $options['zero'] ?? null;
-        $one = $options['one'] ?? null;
-        $two = $options['two'] ?? null;
-        $few = $options['few'] ?? null;
-        $many = $options['many'] ?? null;
-        $other = $options['other'];
+        $zero = self::setVarName('#', $value, $options['zero'] ?? null);
+        $one = self::setVarName('#', $value, $options['one'] ?? null);
+        $two = self::setVarName('#', $value, $options['two'] ?? null);
+        $few = self::setVarName('#', $value, $options['few'] ?? null);
+        $many = self::setVarName('#', $value, $options['many'] ?? null);
+        $other = self::setVarName('#', $value, $options['other']);
         unset($options['zero'], $options['one'], $options['two'], $options['few'], $options['many'], $options['other']);
         $numbers = [];
 
@@ -52,7 +52,7 @@ final readonly class SelectOrdinal implements ICUTypeInterface
                 throw new LogicException('Invalid option "' . $key . '"');
             }
 
-            $numbers[substr($key, 1)] = $option;
+            $numbers[substr($key, 1)] = self::setVarName('#', $value, $option);
         }
 
         return new self($value, $other, $zero, $one, $two, $few, $many, ...$numbers);
@@ -71,16 +71,28 @@ final readonly class SelectOrdinal implements ICUTypeInterface
 
         foreach ($namedOptions as $key => $value) {
             if ($value !== null) {
-                $options[] = $key . ' {' . implode('', $value) . '}';
+                $options[] = $key . ' {' . implode('', self::setVarName($this->value, '#', $value)) . '}';
             }
         }
 
         foreach ($this->numbers as $key => $value) {
-            $options[] = '=' . $key . ' {' . implode('', $value) . '}';
+            $options[] = '=' . $key . ' {' . implode('', self::setVarName($this->value, '#', $value)) . '}';
         }
 
-        $options[] = 'other {' . implode('', $this->other) . '}';
+        $options[] = 'other {' . implode('', self::setVarName($this->value, '#', $this->other)) . '}';
 
-        return '{' . $this->value . ', selectordinal' . ($options === [] ? '' : ', ' . implode(' ', $options)) . '}';
+        return '{' . $this->value . ', plural' . ($options === [] ? '' : ', ' . implode(' ', self::setVarName($this->value, '#', $options))) . '}';
+    }
+
+    private static function setVarName(string $from, string $to, ?array $option): ?array
+    {
+        return $option === null
+            ? null
+            : array_map(
+                static fn (mixed $item) => $item instanceof Variable && $item->value === $from
+                    ? new Variable($to)
+                    : $item,
+                $option,
+            );
     }
 }

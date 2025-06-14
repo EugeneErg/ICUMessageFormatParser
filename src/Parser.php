@@ -87,7 +87,7 @@ readonly class Parser
                 }
 
                 $result[] = $this->createClass(self::TEXT, implode('', array_column($child->children, 'value')));
-            } elseif ($child->name === self::OBJECT) {
+            } elseif ($child->name === self::OBJECT || $child->name === self::VARIABLE) {
                 if ($message !== '') {
                     $result[] = $this->createClass(self::PATTERN, $message);
                     $message = '';
