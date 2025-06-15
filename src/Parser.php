@@ -16,6 +16,7 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\SelectOrdinal;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\SpellOut;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Time;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
 use EugeneErg\StringParser\DataTransferObjects\Result;
 use EugeneErg\StringParser\DataTransferObjects\Value;
@@ -53,14 +54,11 @@ readonly class Parser
     ]) {
     }
 
-    /**
-     * @return ICUTypeInterface[]
-     */
-    public function parse(string $formatMessage): array
+    public function parse(string $formatMessage): Types
     {
         $structure = $this->getStructure($formatMessage);
 
-        return $this->parsePattern($structure->children);
+        return new Types($this->parsePattern($structure->children));
     }
 
     private function getStructure(string $formatMessage): Result

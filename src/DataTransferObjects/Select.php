@@ -4,17 +4,17 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
-final readonly class Select implements ICUTypeInterface
+final readonly class Select extends AbstractSelect
 {
     /**
-     * @param ICUTypeInterface[]|null $other
-     * @param ICUTypeInterface[][] ...$options
+     * @param Types[] ...$options
      */
-    public function __construct(public string $value, public array $other, public array $options)
+    public function __construct(string $value, public Types $other, public array $options)
     {
+        parent::__construct($value);
     }
 
-    public static function create(string $value, array $options = []): ICUTypeInterface
+    public static function create(string $value, array $options = []): self
     {
         $other = $options['other'];
         unset($options['other']);
@@ -30,24 +30,18 @@ final readonly class Select implements ICUTypeInterface
     {
         $options = [];
 
-        foreach ($this->options as $key => $value) {
-            $options[] = $key . ' {' . implode('', $value) . '}';
+        foreach ($this->getOptions() as $key => $value) {
+            $options[] = $key . ' {' . $value . '}';
         }
 
-        $options[] = 'other {' . implode('', $this->other) . '}';
-
-        return '{' . $this->value . ', select' . ($options === [] ? '' : ', ' . implode(' ', $options)) . '}';
+        return '{' . $this->value . ', select, ' . implode(' ', $options) . '}';
     }
 
-    private static function setVarName(string $from, string $to, ?array $option): ?array
+    protected function getOptions(): array
     {
-        return $option === null
-            ? null
-            : array_map(
-                static fn (mixed $item) => $item instanceof Variable && $item->value === $from
-                    ? new Variable($to)
-                    : $item,
-                $option,
-            );
+        $result = $this->options;
+        $result['other'] = $this->other;
+
+        return $result;
     }
 }

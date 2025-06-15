@@ -51,4 +51,14 @@ final readonly class Number implements ICUTypeInterface
 
         return '{' . $this->value . ', number' . ($options === '' ? '' : ', ' . $options) . '}';
     }
+
+    public function getAllVariants(array $cases = []): array
+    {
+        return [new Variant(types: new Types([$this]))];
+    }
+
+    public function getAllVariables(): array
+    {
+        return [$this->value];
+    }
 }

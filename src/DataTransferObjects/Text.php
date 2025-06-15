@@ -20,4 +20,14 @@ final readonly class Text implements ICUTypeInterface
     {
         return '\'' . str_replace('\'', '\'\'', $this->value) . '\'';
     }
+
+    public function getAllVariants(array $cases = []): array
+    {
+        return [new Variant(types: new Types([$this]))];
+    }
+
+    public function getAllVariables(): array
+    {
+        return [];
+    }
 }

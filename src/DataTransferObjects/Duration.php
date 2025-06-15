@@ -19,4 +19,14 @@ final readonly class Duration implements ICUTypeInterface
     {
         return '{' . $this->value . ', duration}';
     }
+
+    public function getAllVariants(array $cases = []): array
+    {
+        return [new Variant(types: new Types([$this]))];
+    }
+
+    public function getAllVariables(): array
+    {
+        return [$this->value];
+    }
 }

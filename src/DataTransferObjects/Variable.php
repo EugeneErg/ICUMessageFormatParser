@@ -19,4 +19,14 @@ final readonly class Variable implements ICUTypeInterface
     {
         return $this->value === '#' ? '#' : '{' . $this->value . '}';
     }
+
+    public function getAllVariants(array $cases = []): array
+    {
+        return [new Variant(types: new Types([$this]))];
+    }
+
+    public function getAllVariables(): array
+    {
+        return [$this->value];
+    }
 }

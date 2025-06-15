@@ -19,4 +19,14 @@ final readonly class Ordinal implements ICUTypeInterface
     {
         return '{' . $this->value . ', ordinal}';
     }
+
+    public function getAllVariants(array $cases = []): array
+    {
+        return [new Variant(types: new Types([$this]))];
+    }
+
+    public function getAllVariables(): array
+    {
+        return [$this->value];
+    }
 }
