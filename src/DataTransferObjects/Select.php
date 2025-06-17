@@ -21,8 +21,8 @@ final readonly class Select extends AbstractSelect
 
         return new self(
             $value,
-            self::setVarName('#', $value, $other),
-            array_map(static fn (array $option) => self::setVarName('#', $value, $option), $options),
+            (new Types($other))->replaceVariableName('#', $value),
+            array_map(static fn (array $option) => (new Types($option))->replaceVariableName('#', $value), $options),
         );
     }
 

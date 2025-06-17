@@ -67,4 +67,42 @@ final readonly class Types implements Stringable
 
         return array_unique(array_merge(...$result));
     }
+
+    public function map(callable $callback): self
+    {
+        return new self(array_map($callback, $this->types));
+    }
+
+    public function filter(callable $callback): self
+    {
+        return new self(array_filter($this->types, $callback));
+    }
+
+    public function quote(): self
+    {
+        return $this->map(static fn (ICUTypeInterface $type) => $type instanceof Pattern ? $type : new Text((string) $type));
+    }
+
+    public function replaceVariableName(string $from, string $to): self
+    {
+        return $this->map(
+            static fn (ICUTypeInterface $type) => $type instanceof Variable && $type->value === $from
+                ? new Variable($to)
+                : $type,
+        );
+    }
+
+    public function setValues(array $values): self
+    {
+        return $this->map(
+            static fn (ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface && isset($values[$type->getValue()])
+                ? new Text($values[$type->getValue()])
+                : $type,
+        );
+    }
+
+    public function getVariables(): self
+    {
+        return $this->filter(static fn (ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface);
+    }
 }

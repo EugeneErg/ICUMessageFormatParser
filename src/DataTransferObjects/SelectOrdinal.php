@@ -26,24 +26,25 @@ final readonly class SelectOrdinal extends AbstractSelect
 
     public static function create(string $value, array $options = []): self
     {
-        $zero = self::setVarName('#', $value, $options['zero'] ?? null);
-        $one = self::setVarName('#', $value, $options['one'] ?? null);
-        $two = self::setVarName('#', $value, $options['two'] ?? null);
-        $few = self::setVarName('#', $value, $options['few'] ?? null);
-        $many = self::setVarName('#', $value, $options['many'] ?? null);
-        $other = self::setVarName('#', $value, $options['other']);
-        unset($options['zero'], $options['one'], $options['two'], $options['few'], $options['many'], $options['other']);
-        $numbers = [];
+        $arguments = [];
+        $argumentNames = ['zero', 'one', 'two', 'few', 'many', 'other'];
+
+        foreach ($argumentNames as $argumentName) {
+            if (isset($options[$argumentName])) {
+                $arguments[$argumentName] = (new Types($options[$argumentName]))->replaceVariableName('#', $value);
+                unset($options[$argumentName]);
+            }
+        }
 
         foreach ($options as $key => $option) {
             if (!preg_match('{=\d+}', $key)) {
                 throw new LogicException('Invalid option "' . $key . '"');
             }
 
-            $numbers[substr($key, 1)] = self::setVarName('#', $value, $option);
+            $arguments['numbers'][substr($key, 1)] = (new Types($option))->replaceVariableName('#', $value);
         }
 
-        return new self($value, $other, $zero, $one, $two, $few, $many, $numbers);
+        return new self($value, ...$arguments);
     }
 
     public function __toString(): string
@@ -51,7 +52,7 @@ final readonly class SelectOrdinal extends AbstractSelect
         $options = [];
 
         foreach ($this->getOptions() as $key => $value) {
-            $options[] = $key . ' {' . self::setVarName($this->value, '#', $value->types) . '}';
+            $options[] = $key . ' {' . $value->replaceVariableName($this->value, '#') . '}';
         }
 
         return '{' . $this->value . ', selectordinal, ' . implode(' ', $options) . '}';

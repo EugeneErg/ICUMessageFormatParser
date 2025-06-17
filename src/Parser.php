@@ -38,20 +38,23 @@ readonly class Parser
     /**
      * @param array<string, class-string<ICUTypeInterface>> $classes
      */
-    public function __construct(private array $classes = [
-        self::PATTERN => Pattern::class,
-        self::VARIABLE => Variable::class,
-        self::TEXT => Text::class,
-        'select' => Select::class,
-        'plural' => Plural::class,
-        'selectordinal' => SelectOrdinal::class,
-        'number' => Number::class,
-        'date' => Date::class,
-        'time' => Time::class,
-        'spellout' => SpellOut::class,
-        'ordinal' => Ordinal::class,
-        'duration' => Duration::class,
-    ]) {
+    public function __construct(
+        private string $parserPath = __DIR__ . '/Template.php',
+        private array $classes = [
+            self::PATTERN => Pattern::class,
+            self::VARIABLE => Variable::class,
+            self::TEXT => Text::class,
+            'select' => Select::class,
+            'plural' => Plural::class,
+            'selectordinal' => SelectOrdinal::class,
+            'number' => Number::class,
+            'date' => Date::class,
+            'time' => Time::class,
+            'spellout' => SpellOut::class,
+            'ordinal' => Ordinal::class,
+            'duration' => Duration::class,
+        ],
+    ) {
     }
 
     public function parse(string $formatMessage): Types
@@ -63,8 +66,7 @@ readonly class Parser
 
     private function getStructure(string $formatMessage): Result
     {
-        return (new \EugeneErg\StringParser\Parser())
-            ->parse(require __DIR__ . '/Template.php', $formatMessage);
+        return (new \EugeneErg\StringParser\Parser())->parse(require $this->parserPath, $formatMessage);
     }
 
     /**

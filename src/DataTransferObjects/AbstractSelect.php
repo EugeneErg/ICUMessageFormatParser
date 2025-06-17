@@ -4,10 +4,15 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
-abstract readonly class AbstractSelect implements ICUTypeInterface
+abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVariableInterface
 {
     public function __construct(public string $value)
     {
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
     }
 
     /**
@@ -54,16 +59,4 @@ abstract readonly class AbstractSelect implements ICUTypeInterface
      * @return Types[]
      */
     abstract protected function getOptions(): array;
-
-    protected static function setVarName(string $from, string $to, ?array $option): ?Types
-    {
-        return $option === null
-            ? null
-            : new Types(array_map(
-                static fn (mixed $item) => $item instanceof Variable && $item->value === $from
-                    ? new Variable($to)
-                    : $item,
-                $option,
-            ));
-    }
 }

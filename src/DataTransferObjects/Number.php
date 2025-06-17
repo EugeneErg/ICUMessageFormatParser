@@ -4,11 +4,9 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Currency;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Format;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
 
-final readonly class Number implements ICUTypeInterface
+final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterface
 {
     public function __construct(public string $value, public Skeleton|Message $options)
     {
@@ -60,5 +58,10 @@ final readonly class Number implements ICUTypeInterface
     public function getAllVariables(): array
     {
         return [$this->value];
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
     }
 }
