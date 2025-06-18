@@ -37,6 +37,15 @@ final readonly class Select extends AbstractSelect
         return '{' . $this->value . ', select, ' . implode(' ', $options) . '}';
     }
 
+    public function replaceRecursive(array $replace): self
+    {
+        return new self(
+            $this->value,
+            $this->other->replaceRecursive($replace),
+            array_map(static fn (Types $types) => $types->replaceRecursive($replace), $this->options),
+        );
+    }
+
     protected function getOptions(): array
     {
         $result = $this->options;

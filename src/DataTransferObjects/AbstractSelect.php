@@ -56,6 +56,11 @@ abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVaria
     }
 
     /**
+     * @param Types[] $replace
+     */
+    abstract public function replaceRecursive(array $replace): self;
+
+    /**
      * @return Types[]
      */
     abstract protected function getOptions(): array;

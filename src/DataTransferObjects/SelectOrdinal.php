@@ -58,6 +58,20 @@ final readonly class SelectOrdinal extends AbstractSelect
         return '{' . $this->value . ', selectordinal, ' . implode(' ', $options) . '}';
     }
 
+    public function replaceRecursive(array $replace): self
+    {
+        return new self(
+            value: $this->value,
+            other: $this->other->replaceRecursive($replace),
+            zero: $this->zero?->replaceRecursive($replace),
+            one: $this->one?->replaceRecursive($replace),
+            two: $this->two?->replaceRecursive($replace),
+            few: $this->few?->replaceRecursive($replace),
+            many: $this->many?->replaceRecursive($replace),
+            numbers: array_map(static fn (Types $types) => $types->replaceRecursive($replace), $this->numbers),
+        );
+    }
+
     protected function getOptions(): array
     {
         /** @var array<Types|null> $namedOptions */

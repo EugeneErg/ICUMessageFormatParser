@@ -5,24 +5,31 @@ declare(strict_types = 1);
 namespace EugeneErg\ICUMessageFormatParser;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\AbstractSelect;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Cases;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
 
 readonly class Variator
 {
-    /**
-     * @param Variant[] $variants
-     */
-    public function create(array $variants): Types
+    public function typesToCases(Types $types, ?callable $makeKey = null): Cases
     {
+        $variants = $types->getAllVariants();
         $cases = [];
 
         foreach ($variants as $key => $variant) {
+            $key = $makeKey === null ? $key : $makeKey($variant, $key);
             $cases[$key] = $variant->cases;
         }
 
-        return new Types([$this->createFromCases($cases)]);
+        return new Cases(
+            array_column($variants, 'types'),
+            new Types([$this->createFromCases($cases)]),
+        );
+    }
+
+    public function casesToTypes(Cases $cases): Types
+    {
+        return $cases->variator->replaceRecursive($cases->variants);
     }
 
     private function createFromCases(array $cases): Pattern|AbstractSelect

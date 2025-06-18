@@ -105,4 +105,32 @@ final readonly class Types implements Stringable
     {
         return $this->filter(static fn (ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface);
     }
+
+    /**
+     * @param Types[] $replace
+     */
+    public function replaceRecursive(array $replace): self
+    {
+        $result = [];
+
+        foreach ($this->types as $type) {
+            if ($type instanceof Pattern && isset($replace[$type->value])) {
+                foreach ($replace[$type->value]->types as $item) {
+                    $result[] = $item;
+                }
+
+                continue;
+            }
+
+            if ($type instanceof AbstractSelect) {
+                $result[] = $type->replaceRecursive($replace);
+
+                continue;
+            }
+
+            $result[] = $type;
+        }
+
+        return new self($result);
+    }
 }
