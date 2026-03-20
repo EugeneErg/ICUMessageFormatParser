@@ -2,8 +2,10 @@
 
 declare(strict_types = 1);
 
-namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
+namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\AbstractSelect;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
 use Stringable;
 
 interface ICUTypeInterface extends Stringable

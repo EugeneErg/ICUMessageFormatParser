@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeMergeInterface;
+
 final readonly class Variant
 {
     public Types $types;
@@ -22,12 +24,30 @@ final readonly class Variant
     {
         $cases = $this->mergeCases($variant->cases);
 
-        return $cases === null
-            ? null
-            : new self(
-                types: new Types(array_merge($this->types->types, $variant->types->types)),
+        if ($cases === null) {
+            return null;
+        }
+
+        $left = $this->types->types;
+        $right = $variant->types->types;
+
+        if (count($left) === 0 || count($right) === 0) {
+            return new self(
+                types: new Types(array_merge($left, $right)),
                 cases: $cases,
             );
+        }
+
+        $last = array_pop($left);
+        $first = array_shift($right);
+        $merge = $last instanceof ICUTypeMergeInterface && $first instanceof $last
+            ? $last->merge($first)
+            : [$last, $first];
+
+        return new self(
+            types: new Types(array_merge($left, $merge, $right)),
+            cases: $cases,
+        );
     }
 
     private function mergeCases(array $cases): ?array

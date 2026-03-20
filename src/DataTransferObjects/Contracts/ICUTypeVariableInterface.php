@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
+namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts;
 
 interface ICUTypeVariableInterface extends ICUTypeInterface
 {

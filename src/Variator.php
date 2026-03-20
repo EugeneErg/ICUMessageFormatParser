@@ -17,7 +17,7 @@ readonly class Variator
         $cases = [];
 
         foreach ($variants as $key => $variant) {
-            $key = $makeKey === null ? $key : $makeKey($variant, $key);
+            $key = $makeKey === null ? $key : $makeKey($variant, (string) $key);
             $cases[$key] = $variant->cases;
         }
 
@@ -32,6 +32,9 @@ readonly class Variator
         return $cases->variator->replaceRecursive($cases->variants);
     }
 
+    /**
+     * @param array<string, array<class-string<AbstractSelect>, array<string, string|string[]>>> $cases
+     */
     private function createFromCases(array $cases): Pattern|AbstractSelect
     {
         foreach ($cases as $classes) {

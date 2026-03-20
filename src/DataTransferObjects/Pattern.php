@@ -4,7 +4,10 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
-final readonly class Pattern implements ICUTypeInterface
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeMergeInterface;
+
+final readonly class Pattern implements ICUTypeInterface, ICUTypeMergeInterface
 {
     public function __construct(public string $value)
     {
@@ -28,5 +31,12 @@ final readonly class Pattern implements ICUTypeInterface
     public function getAllVariables(): array
     {
         return [];
+    }
+
+    public function merge(ICUTypeInterface $next): array
+    {
+        return [
+            new self($this->value . $next->value),
+        ];
     }
 }

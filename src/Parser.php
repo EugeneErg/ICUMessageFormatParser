@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Date;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Duration;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Ordinal;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;

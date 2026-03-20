@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeVariableInterface;
 use Stringable;
 
 final readonly class Types implements Stringable

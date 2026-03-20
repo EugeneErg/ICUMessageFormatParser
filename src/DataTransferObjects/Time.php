@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeVariableInterface;
+
 final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
 {
     public function __construct(public string $value, public DateTimeFormat|Message|string $format = DateTimeFormat::Medium)
