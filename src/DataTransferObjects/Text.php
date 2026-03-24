@@ -9,9 +9,8 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeMergeI
 
 final readonly class Text implements ICUTypeInterface, ICUTypeMergeInterface
 {
-    public function __construct(
-        public string $value,
-    ) {
+    public function __construct(public string $value)
+    {
     }
 
     public static function create(string $value, array $options = []): ICUTypeInterface

@@ -64,6 +64,11 @@ readonly class Parser
         return new Types($this->parsePattern($structure->children));
     }
 
+    public function makeText(string $text): Types
+    {
+        return new Types([Text::create($text)]);
+    }
+
     private function getStructure(string $formatMessage): Result
     {
         return (new \EugeneErg\StringParser\Parser())->parse(require $this->parserPath, $formatMessage);
