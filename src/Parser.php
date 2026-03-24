@@ -64,7 +64,7 @@ readonly class Parser
         return new Types($this->parsePattern($structure->children));
     }
 
-    public function makeText(string $text): Types
+    public function makePattern(string $text): Types
     {
         return new Types([Text::create($text)]);
     }

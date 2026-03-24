@@ -19,8 +19,8 @@ $root = new Root(
     children: [
         Parser::QUOTA => $quota,
         Parser::TEXT => new Item(
-            startPattern: '\'(?=[\\{\\}])',
-            endPattern: '\'(?!\'|\\z)',
+            startPattern: '\'',
+            endPattern: '\'(?!\')',
             includeStart: false,
             includeEnd: true,
             save: true,
