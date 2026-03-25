@@ -64,9 +64,9 @@ readonly class Parser
         return new Types($this->parsePattern($structure->children));
     }
 
-    public function makePattern(string $text): Types
+    public function quote(string $text): string
     {
-        return new Types([Text::create($text)]);
+        return str_replace(['\'', '{', '}'], ['\'\'', '\'{\'', '\'}\''], $text);
     }
 
     private function getStructure(string $formatMessage): Result
