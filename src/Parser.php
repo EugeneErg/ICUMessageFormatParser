@@ -66,7 +66,7 @@ readonly class Parser
 
     public function quote(string $text): string
     {
-        return str_replace(['\'', '{', '}'], ['\'\'', '\'{\'', '\'}\''], $text);
+        return preg_replace(['{\'}', '{[{}]+}'], ['\'\'', '\'$0\''], $text);
     }
 
     private function getStructure(string $formatMessage): Result
