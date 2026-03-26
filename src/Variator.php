@@ -8,12 +8,15 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\AbstractSelect;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Cases;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
 
 readonly class Variator
 {
-    public function typesToCases(Types $types, ?callable $makeKey = null): Cases
+    /**
+     * @param Variant[] $variants
+     */
+    public function variantsToCases(array $variants, ?callable $makeKey = null): Cases
     {
-        $variants = $types->getAllVariants();
         $cases = [];
 
         foreach ($variants as $key => $variant) {
@@ -29,7 +32,7 @@ readonly class Variator
 
     public function casesToTypes(Cases $cases): Types
     {
-        return $cases->variator->replaceRecursive($cases->variants);
+        return $cases->variator->replaceRecursive($cases->types);
     }
 
     /**
@@ -43,7 +46,7 @@ readonly class Variator
                     $allCases = [];
 
                     foreach ($cases as $key => $allClasses) {
-                        if (isset($allClasses[$class][$name])) {
+                        if (isset($allClasses[$class]) && array_key_exists($name, $allClasses[$class])) {
                             $allCases[$key] = $allClasses[$class][$name];
                             unset($cases[$key][$class][$name]);
                         }

@@ -7,10 +7,10 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 final readonly class Cases
 {
     /**
-     * @param Types[] $variants
+     * @param Types[] $types
      */
     public function __construct(
-        public array $variants,
+        public array $types,
         public Types $variator,
     ) {
     }
