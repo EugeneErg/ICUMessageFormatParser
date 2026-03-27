@@ -8,15 +8,12 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\AbstractSelect;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Cases;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
 
 readonly class Variator
 {
-    /**
-     * @param Variant[] $variants
-     */
-    public function variantsToCases(array $variants, ?callable $makeKey = null): Cases
+    public function typesToCases(Types $types, ?callable $makeKey = null): Cases
     {
+        $variants = $types->getAllVariants();
         $cases = [];
 
         foreach ($variants as $key => $variant) {
