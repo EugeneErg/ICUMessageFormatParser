@@ -14,6 +14,11 @@ final readonly class Select extends AbstractSelect
         parent::__construct($value);
     }
 
+    public static function getName(): string
+    {
+        return 'select';
+    }
+
     public static function create(string $value, array $options = []): self
     {
         $other = $options['other'];

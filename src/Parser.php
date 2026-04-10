@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\AbstractSelect;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Cases;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Date;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Duration;
@@ -39,7 +41,7 @@ readonly class Parser
      * @param array<string, class-string<ICUTypeInterface>> $classes
      */
     public function __construct(
-        private string $parserPath = __DIR__ . '/Template.php',
+        private string $parserPath = __DIR__ . '/../Template.php',
         private array $classes = [
             self::PATTERN => Pattern::class,
             self::VARIABLE => Variable::class,
@@ -67,6 +69,35 @@ readonly class Parser
     public function quote(string $text): string
     {
         return preg_replace(['{\'}', '{[{}]+}'], ['\'\'', '\'$0\''], $text);
+    }
+
+    public function typesToCases(Types $types, ?callable $makeKey = null): Cases
+    {
+        $variants = $types->getAllVariants();
+        $cases = [];
+
+        foreach ($variants as $key => $variant) {
+            $key = $makeKey === null ? $key : $makeKey($variant, (string) $key);
+            $cases[$key] = $variant->cases;
+        }
+
+        return new Cases(
+            array_column($variants, 'types'),
+            new Types([$this->createFromCases($cases)]),
+        );
+    }
+
+    public function casesToTypes(Cases $cases): Types
+    {
+        return $cases->variator->replaceRecursive($cases->types);
+    }
+
+    /**
+     * @param ICUTypeInterface[][] $options
+     */
+    private function createFromName(string $name, string $value, array $options): ICUTypeInterface
+    {
+        return $this->classes[$name]::create($value, $options);
     }
 
     private function getStructure(string $formatMessage): Result
@@ -187,5 +218,54 @@ readonly class Parser
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, array<class-string<AbstractSelect>, array<string, string|string[]>>> $cases
+     */
+    private function createFromCases(array $cases): Pattern|AbstractSelect
+    {
+        foreach ($cases as $classes) {
+            foreach ($classes as $class => $names) {
+                foreach ($names as $name => $value) {
+                    $allCases = [];
+
+                    foreach ($cases as $key => $allClasses) {
+                        if (isset($allClasses[$class]) && array_key_exists($name, $allClasses[$class])) {
+                            $allCases[$key] = $allClasses[$class][$name];
+                            unset($cases[$key][$class][$name]);
+                        }
+                    }
+
+                    return $this->createSelect($class, $name, $allCases, $cases);
+                }
+            }
+        }
+
+        $key = array_key_first($cases);
+
+        return new Pattern((string) $key);
+    }
+
+    /**
+     * @param class-string<AbstractSelect> $class
+     * @param array<string|string[]> $classCases
+     * @param array<class-string<AbstractSelect>, array<string, string|string[]>> $cases
+     */
+    private function createSelect(string $class, string $name, array $classCases, array $cases): AbstractSelect
+    {
+        $options = [];
+
+        foreach ($classCases as $key => $value) {
+            $option = is_string($value) ? $value : 'other';
+            $options[$option][$key] = $cases[$key];
+        }
+
+        foreach ($options as $option => $subCases) {
+            $options[$option] = [$this->createFromCases($subCases)];
+        }
+
+        /** @var AbstractSelect */
+        return $this->createFromName($class, $name, $options);
     }
 }

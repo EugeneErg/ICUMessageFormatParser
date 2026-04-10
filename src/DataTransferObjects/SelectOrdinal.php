@@ -24,6 +24,11 @@ final readonly class SelectOrdinal extends AbstractSelect
         parent::__construct($value);
     }
 
+    public static function getName(): string
+    {
+        return 'selectordinal';
+    }
+
     public static function create(string $value, array $options = []): self
     {
         $arguments = [];

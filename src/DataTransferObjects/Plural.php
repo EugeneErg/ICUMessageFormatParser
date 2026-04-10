@@ -24,6 +24,11 @@ final readonly class Plural extends AbstractSelect
         parent::__construct($value);
     }
 
+    public static function getName(): string
+    {
+        return 'plural';
+    }
+
     public static function create(string $value, array $options = []): self
     {
         $arguments = [];

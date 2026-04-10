@@ -13,6 +13,8 @@ abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVaria
     {
     }
 
+    abstract public static function getName(): string;
+
     public function getValue(): string
     {
         return $this->value;
@@ -36,12 +38,12 @@ abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVaria
 
         foreach ($options as $name => $option) {
             $subCases = $cases;
-            $subCases[static::class][$this->value] = $name;
+            $subCases[static::getName()][$this->value] = $name;
             $result[] = $option->getAllVariants($subCases);
         }
 
         $subCases = $cases;
-        $subCases[static::class][$this->value] = null;
+        $subCases[static::getName()][$this->value] = null;
         $result[] = $other->getAllVariants($subCases);
 
         return array_merge(...$result);
