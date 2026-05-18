@@ -11,4 +11,29 @@ enum Notation: string
     case Engineering = 'engineering';
     case CompactShort = 'compact-short';
     case CompactLong = 'compact-long';
+
+    public static function tryFromShortOrLong(string $value): ?self
+    {
+        return self::tryFrom($value) ?? self::tryFromShort($value);
+    }
+
+    private static function tryFromShort(string $value): ?self
+    {
+        foreach (self::cases() as $case) {
+            if ($case->shortValue() === $value) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
+
+    public function shortValue(): string
+    {
+        return match ($this) {
+            self::Scientific => 'E',
+            self::Engineering => 'EE',
+            default => $this->value,
+        };
+    }
 }

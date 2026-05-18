@@ -44,8 +44,8 @@ final readonly class Skeleton implements Stringable
         $skeleton = [];
         $skeletonOptions = [
             'format' => static fn (string $option) => self::tryMakeFormat($option),
-            'notation' => static fn (string $option) => Notation::tryFrom($option),
-            'sign' => static fn (string $option) => Sign::tryFrom($option),
+            'notation' => static fn (string $option) => Notation::tryFromShortOrLong($option),
+            'sign' => static fn (string $option) => Sign::tryFromShortOrLong($option),
             'unitWidth' => static fn (string $option) => UnitWidth::tryFrom($option),
             'precision' => static fn (string $option) => self::tryMakePrecision($option),
             'group' => static fn (string $option) => self::tryMakeGroup($option),
