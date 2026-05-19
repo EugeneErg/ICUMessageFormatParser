@@ -6,8 +6,9 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
 enum Notation: string
 {
-    /** Default; also parseable as "notation-simple" */
+    /** Programmatic API name (ICU4J/ICU4C). */
     case Standard = 'standard';
+    /** Skeleton token form — same meaning as Standard. */
     case NotationSimple = 'notation-simple';
     case Scientific = 'scientific';
     case Engineering = 'engineering';

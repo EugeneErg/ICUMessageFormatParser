@@ -165,7 +165,15 @@ final readonly class Skeleton implements Stringable
         }
 
         // --- Notation ---
-        if ($this->notation !== Notation::Standard) {
+        // Both Standard ('standard') and NotationSimple ('notation-simple') mean "default";
+        // neither produces a skeleton token unless NotationSimple was set explicitly.
+        if ($this->isDefaultNotation()) {
+            if ($this->notation === Notation::NotationSimple) {
+                // User explicitly requested the skeleton-form token — preserve it.
+                $tokens[] = Notation::NotationSimple->value;
+                $canBeSimple = false;
+            }
+        } else {
             $tokens[] = $this->notation->value . (string) ($this->scientificOptions ?? '');
             $canBeSimple = false;
         }
@@ -256,7 +264,7 @@ final readonly class Skeleton implements Stringable
     {
         // ---- Notation ----
         if ($token === 'notation-simple') {
-            $args['notation'] = Notation::Standard;
+            $args['notation'] = Notation::NotationSimple;
             return;
         }
 
@@ -683,6 +691,12 @@ final readonly class Skeleton implements Stringable
     // ------------------------------------------------------------------
     // Default precision
     // ------------------------------------------------------------------
+
+    private function isDefaultNotation(): bool
+    {
+        return $this->notation === Notation::Standard
+            || $this->notation === Notation::NotationSimple;
+    }
 
     private function defaultPrecision(): Precision|PrecisionFraction
     {
