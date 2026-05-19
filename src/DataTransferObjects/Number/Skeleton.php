@@ -162,6 +162,7 @@ final readonly class Skeleton implements Stringable
             $canBeSimple = false;
         } elseif ($this->format !== Format::Decimal) {
             $tokens[] = $this->format->value;
+            // Format tokens (integer, percent, etc.) are valid single-token shorthands without ::
         }
 
         // --- Notation ---
@@ -207,7 +208,15 @@ final readonly class Skeleton implements Stringable
         }
 
         // --- Scale ---
-        if ($this->scale !== 1.0 && !$this->percentScale) {
+        if ($this->percentScale) {
+            // %x100 was already emitted as 'percent' via format block; now emit scale marker
+            // Replace the 'percent' token with concise '%x100' form
+            $idx = array_search('percent', $tokens, true);
+            if ($idx !== false) {
+                $tokens[$idx] = '%x100';
+                $tokens = array_values($tokens);
+            }
+        } elseif ($this->scale !== 1.0) {
             $tokens[] = 'scale/' . self::formatFloat($this->scale);
             $canBeSimple = false;
         }
@@ -454,9 +463,9 @@ final readonly class Skeleton implements Stringable
             return;
         }
 
-        // . alone is equivalent to precision-integer
+        // '.' alone: minFraction=0, maxFraction=0 → serialises back as '.'
         if ($token === '.') {
-            $args['precision'] = Precision::Integer;
+            $args['precision'] = new PrecisionFraction(0, 0);
             return;
         }
 
@@ -708,8 +717,12 @@ final readonly class Skeleton implements Stringable
             return new PrecisionFraction(minFraction: 0, maxFraction: 2);
         }
 
+        // When scientific/engineering notation is active, ICU defaults to 6 fraction digits
+        if ($this->notation === Notation::Scientific || $this->notation === Notation::Engineering) {
+            return new PrecisionFraction(minFraction: 6, maxFraction: 6);
+        }
+
         return match ($this->format) {
-            Format::Scientific  => new PrecisionFraction(minFraction: 6, maxFraction: 6),
             Format::Percent,
             Format::Integer     => Precision::Integer,
             default             => new PrecisionFraction(minFraction: 0, maxFraction: 2),
