@@ -11,7 +11,10 @@ enum Sign: string
     case Never = 'sign-never';
     case Accounting = 'sign-accounting';
     case AccountingAlways = 'sign-accounting-always';
+    case ExceptZero = 'sign-except-zero';
     case AccountingExceptZero = 'sign-accounting-except-zero';
+    case Negative = 'sign-negative';
+    case AccountingNegative = 'sign-accounting-negative';
 
     public static function tryFromShortOrLong(string $value): ?self
     {

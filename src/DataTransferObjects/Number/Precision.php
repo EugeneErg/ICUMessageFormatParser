@@ -7,6 +7,7 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 enum Precision: string
 {
     case Integer = 'precision-integer';
+    case Unlimited = 'precision-unlimited';
     case CurrencyStandard = 'precision-currency-standard';
     case CurrencyCash = 'precision-currency-cash';
 }

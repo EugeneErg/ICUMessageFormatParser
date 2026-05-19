@@ -6,7 +6,9 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
 enum Notation: string
 {
+    /** Default; also parseable as "notation-simple" */
     case Standard = 'standard';
+    case NotationSimple = 'notation-simple';
     case Scientific = 'scientific';
     case Engineering = 'engineering';
     case CompactShort = 'compact-short';
