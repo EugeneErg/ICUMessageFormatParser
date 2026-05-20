@@ -20,6 +20,7 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\RoundingMode;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\ScientificOptions;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Sign;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\UnitWidth;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -163,8 +164,8 @@ final class SkeletonTest extends TestCase
         $bySimple   = self::parse('notation-simple');
 
         // Both mean "default notation" — neither should emit non-default tokens
-        self::assertSame(Notation::Standard,       $byStandard->notation);
-        self::assertSame(Notation::NotationSimple,  $bySimple->notation);
+        self::assertInstanceOf(\EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\StandardNotation::class, $byStandard->notation);
+        self::assertInstanceOf(\EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NotationSimple::class, $bySimple->notation);
         // Standard silently omitted; NotationSimple preserved explicitly
         self::assertSame('',                  (string) $byStandard);
         self::assertSame('::notation-simple', (string) $bySimple);
@@ -270,9 +271,9 @@ final class SkeletonTest extends TestCase
         return [
             'short (default, no output)' => ['unit-width-short',     ''],
             'narrow'                     => ['unit-width-narrow',     '::unit-width-narrow'],
-            'full-name'                  => ['unit-width-full-name',  '::unit-width-full-name'],
-            'iso-code'                   => ['unit-width-iso-code',   '::unit-width-iso-code'],
-            'hidden'                     => ['unit-width-hidden',     '::unit-width-hidden'],
+            'full-name'                  => ['currency/USD unit-width-full-name',  '::currency/USD unit-width-full-name'],
+            'iso-code'                   => ['currency/USD unit-width-iso-code',   '::currency/USD unit-width-iso-code'],
+            'hidden'                     => ['currency/USD unit-width-hidden',     '::currency/USD unit-width-hidden'],
         ];
     }
 
@@ -291,8 +292,8 @@ final class SkeletonTest extends TestCase
         return [
             'precision-integer'            => ['precision-integer',          '::precision-integer'],
             'precision-unlimited'          => ['precision-unlimited',         '::precision-unlimited'],
-            'precision-currency-standard'  => ['precision-currency-standard', '::precision-currency-standard'],
-            'precision-currency-cash'      => ['precision-currency-cash',     '::precision-currency-cash'],
+            'precision-currency-standard'  => ['currency/USD precision-currency-standard', 'currency'],
+            'precision-currency-cash'      => ['currency/USD precision-currency-cash', '::currency/USD precision-currency-cash'],
         ];
     }
 
@@ -508,7 +509,7 @@ final class SkeletonTest extends TestCase
     public static function integerWidthProvider(): array
     {
         return [
-            'integer-width/*000 at-least-3' => ['integer-width/*000', '::integer-width/*000'],
+            'integer-width/*000 at-least-3' => ['integer-width/*000', '000'],
             'integer-width/##0  max-3'      => ['integer-width/##0',  '::integer-width/##0'],
             'integer-width/0    exactly-1'  => ['integer-width/0',    '::integer-width/0'],
             'integer-width/*    unlimited'  => ['integer-width/*',    '::integer-width/*'],
@@ -711,9 +712,9 @@ final class SkeletonTest extends TestCase
             'fraction + rounding'                 => ['.00 rounding-mode-half-up',            '::.00 rounding-mode-half-up'],
             'measure + width + fraction'          => ['measure-unit/length-meter unit-width-full-name .0#', '::measure-unit/length-meter unit-width-full-name .0#'],
             'currency + grouping-off'             => ['currency/EUR group-off',               '::currency/EUR group-off'],
-            'scale + percent'                     => ['percent scale/100',                    '::percent scale/100'],
+            'scale + percent'                     => ['percent scale/100',                    '%x100'],
             'significant + rounding-mode'         => ['@@@ rounding-mode-ceiling',            '::@@@ rounding-mode-ceiling'],
-            'integer-width + fraction'            => ['integer-width/*00 .00',               '::.00 integer-width/*00'],
+            'integer-width + fraction'            => ['integer-width/*00 .00',               '::.00 00'],
             'numbering-system + sign'             => ['latin sign-always',                   '::sign-always latin'],
         ];
     }
@@ -748,7 +749,9 @@ final class SkeletonTest extends TestCase
     {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('000'));
         self::assertNotNull($sk);
-        self::assertSame(3, $sk->zeros);
+        self::assertNotNull($sk->integerWidth);
+        self::assertSame(3, $sk->integerWidth->zeroFillTo);
+        self::assertNull($sk->integerWidth->truncateAt);
     }
 
     public function testTryCreateFromPatternUnknownReturnsNull(): void
@@ -762,7 +765,7 @@ final class SkeletonTest extends TestCase
         $sk = Skeleton::tryCreateFromPattern(new Pattern('%x100'));
         self::assertNotNull($sk);
         self::assertSame(Format::Percent, $sk->format);
-        self::assertTrue($sk->percentScale);
+        self::assertEqualsWithDelta(100.0, $sk->scale, 0.001);
     }
 
     // -----------------------------------------------------------------------

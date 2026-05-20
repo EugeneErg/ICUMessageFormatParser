@@ -4,29 +4,20 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
+use InvalidArgumentException;
 use Stringable;
 
-/**
- * Number symbols / digit system skeleton token.
- *
- * Examples:
- *   latin                    → Latin-script digits
- *   numbering-system/arab    → Arabic-Indic digits
- */
 final readonly class NumberingSystem implements Stringable
 {
-    public function __construct(
-        /** "latin" or an IANA numbering-system identifier, e.g. "arab", "deva". */
-        public string $name = 'latin',
-    ) {
+    public function __construct(public string $name = 'latin')
+    {
+        if ($name === '') {
+            throw new InvalidArgumentException('NumberingSystem: name must not be empty.');
+        }
     }
 
     public function __toString(): string
     {
-        if ($this->name === 'latin') {
-            return 'latin';
-        }
-
-        return 'numbering-system/' . $this->name;
+        return $this->name === 'latin' ? 'latin' : 'numbering-system/' . $this->name;
     }
 }

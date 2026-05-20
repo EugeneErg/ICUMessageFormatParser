@@ -4,35 +4,53 @@ declare(strict_types = 1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
+use InvalidArgumentException;
 use Stringable;
 
-/**
- * Fraction-precision stem: .{zeros}{hashes}[*]
- *
- * Examples:
- *   .00    → minFraction=2, maxFraction=2
- *   .##    → minFraction=0, maxFraction=2
- *   .0#    → minFraction=1, maxFraction=2
- *   .00*   → minFraction=2, maxFraction=null (unlimited)
- *   .      → equivalent to precision-integer
- *
- * Optional trailing-zero display (/w) and significant-digit modifier (@@@*) are also stored.
- */
 final readonly class PrecisionFraction implements Stringable
 {
     public function __construct(
         public int $minFraction = 0,
-        /** null means unlimited */
         public ?int $maxFraction = 0,
-        /** /w: hide trailing zeros when the value is whole */
         public bool $trailingZeroHideIfWhole = false,
-        /** significant-digit modifier: min sig digits (from leading @s) */
         public ?int $minSignificantDigits = null,
-        /** significant-digit modifier: max sig digits (@ + #), null = unlimited */
         public ?int $maxSignificantDigits = null,
-        /** s = strict, r = relaxed, null = withMinDigits / withMaxDigits variant */
         public ?string $significantDigitsMode = null,
     ) {
+        if ($minFraction < 0) {
+            throw new InvalidArgumentException(
+                "PrecisionFraction: minFraction must be >= 0, got $minFraction."
+            );
+        }
+
+        if ($maxFraction !== null && $maxFraction < $minFraction) {
+            throw new InvalidArgumentException(
+                "PrecisionFraction: maxFraction ($maxFraction) must be >= minFraction ($minFraction)."
+            );
+        }
+
+        if ($minSignificantDigits !== null && $minSignificantDigits < 1) {
+            throw new InvalidArgumentException(
+                "PrecisionFraction: minSignificantDigits must be >= 1, got $minSignificantDigits."
+            );
+        }
+
+        if ($minSignificantDigits !== null
+            && $maxSignificantDigits !== null
+            && $maxSignificantDigits < $minSignificantDigits
+        ) {
+            throw new InvalidArgumentException(
+                "PrecisionFraction: maxSignificantDigits ($maxSignificantDigits) "
+                . "must be >= minSignificantDigits ($minSignificantDigits)."
+            );
+        }
+
+        if ($significantDigitsMode !== null && !in_array($significantDigitsMode, ['s', 'r'], true)) {
+            throw new InvalidArgumentException(
+                "PrecisionFraction: significantDigitsMode must be 's', 'r', or null, "
+                . "got '$significantDigitsMode'."
+            );
+        }
     }
 
     public function __toString(): string
