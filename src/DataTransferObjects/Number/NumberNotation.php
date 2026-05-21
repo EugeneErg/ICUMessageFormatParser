@@ -19,6 +19,4 @@ use Stringable;
  */
 abstract readonly class NumberNotation implements Stringable
 {
-    /** Return the Notation enum value for internal skeleton serialisation. */
-    abstract public function notation(): Notation;
 }

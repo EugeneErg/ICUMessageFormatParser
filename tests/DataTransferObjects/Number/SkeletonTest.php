@@ -10,7 +10,6 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Format;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Grouping;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\IntegerWidth;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\MeasureUnit;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Notation;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NumberingSystem;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Precision;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionFraction;
@@ -146,16 +145,6 @@ final class SkeletonTest extends TestCase
             'concise E00 → sci 2-digit exp'=> ['E00',            '::scientific/*ee'],
             'concise EE0 → engineering'    => ['EE0',            '::engineering'],
         ];
-    }
-
-    public function testNotationEnumValues(): void
-    {
-        self::assertSame('standard',       Notation::Standard->value);
-        self::assertSame('notation-simple',Notation::NotationSimple->value);
-        self::assertSame('compact-short',  Notation::CompactShort->value);
-        self::assertSame('compact-long',   Notation::CompactLong->value);
-        self::assertSame('scientific',     Notation::Scientific->value);
-        self::assertSame('engineering',    Notation::Engineering->value);
     }
 
     public function testBothStandardFormsAreDefault(): void

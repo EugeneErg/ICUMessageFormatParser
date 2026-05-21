@@ -35,7 +35,7 @@ final readonly class Skeleton implements Stringable
 
         /** Use StandardNotation, NotationSimple, CompactShortNotation,
          *  CompactLongNotation, ScientificNotation, or EngineeringNotation. */
-        public NumberNotation $notation = new StandardNotation(),
+        public NumberNotation|Notation $notation = new StandardNotation(),
 
         public Sign $sign = Sign::Auto,
 

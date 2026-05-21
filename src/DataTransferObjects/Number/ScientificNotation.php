@@ -17,13 +17,8 @@ final readonly class ScientificNotation extends NumberNotation
     ) {
     }
 
-    public function notation(): Notation
-    {
-        return Notation::Scientific;
-    }
-
     public function __toString(): string
     {
-        return 'scientific' . (string) ($this->options ?? '');
+        return 'scientific' . ($this->options ?? '');
     }
 }

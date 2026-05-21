@@ -6,11 +6,6 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
 final readonly class CompactLongNotation extends NumberNotation
 {
-    public function notation(): Notation
-    {
-        return Notation::CompactLong;
-    }
-
     public function __toString(): string
     {
         return 'compact-long';

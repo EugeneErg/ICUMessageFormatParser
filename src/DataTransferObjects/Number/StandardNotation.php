@@ -10,11 +10,6 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
  */
 final readonly class StandardNotation extends NumberNotation
 {
-    public function notation(): Notation
-    {
-        return Notation::Standard;
-    }
-
     public function __toString(): string
     {
         return '';

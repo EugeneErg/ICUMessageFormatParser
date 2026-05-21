@@ -13,17 +13,12 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 final readonly class EngineeringNotation extends NumberNotation
 {
     public function __construct(
-        public ?ScientificOptions $options = null,
+        public ScientificOptions $options,
     ) {
-    }
-
-    public function notation(): Notation
-    {
-        return Notation::Engineering;
     }
 
     public function __toString(): string
     {
-        return 'engineering' . (string) ($this->options ?? '');
+        return 'engineering' . ($this->options ?? '');
     }
 }

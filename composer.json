@@ -11,5 +11,8 @@
   "require": {
     "php": "^8.2",
     "eugene-erg/string-parser": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12.5"
   }
 }

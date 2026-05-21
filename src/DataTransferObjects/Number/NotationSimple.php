@@ -11,11 +11,6 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
  */
 final readonly class NotationSimple extends NumberNotation
 {
-    public function notation(): Notation
-    {
-        return Notation::NotationSimple;
-    }
-
     public function __toString(): string
     {
         return 'notation-simple';
