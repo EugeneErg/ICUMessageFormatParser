@@ -37,6 +37,9 @@ readonly class Parser
     public const PATTERN = 'pattern';
     public const QUOTA = 'quota';
 
+    /** Types that support offset:N */
+    private const OFFSET_TYPES = ['plural', 'selectordinal'];
+
     /**
      * @param array<string, class-string<ICUTypeInterface>> $classes
      */
@@ -151,14 +154,14 @@ readonly class Parser
 
     private function createClass(string $type, string $value, ?Result $options = null): ICUTypeInterface
     {
-        return $this->classes[$type]::create($value, $options === null ? [] : $this->parseOptions($options));
+        return $this->classes[$type]::create($value, $options === null ? [] : $this->parseOptions($options, $type));
     }
 
-    private function parseOptions(Result $options): array
+    private function parseOptions(Result $options, string $type = ''): array
     {
         return match ($options->name) {
             self::SKELETON => $this->getSkeletonOptions($options->children),
-            self::NESTED => $this->getNestedOptions($options->children),
+            self::NESTED => $this->getNestedOptions($options->children, $type),
             self::PATTERN => $this->getTemplateOptions($options->children),
             default => throw new LogicException('Unexpected option type'),
         };
@@ -173,14 +176,31 @@ readonly class Parser
     }
 
     /**
+     * Parse nested plural/select options.
+     *
+     * Handles the optional "offset:N" token that precedes plural/selectordinal
+     * branch keys:
+     *   {n, plural, offset:2 one {you and # other} other {you and # others}}
+     *
+     * The StringParser grammar delivers offset:N either as a dedicated child
+     * whose key value matches /^offset:(\d+)$/, or as a key-only child with
+     * key "offset" followed by a numeric value child.  Both forms are handled.
+     *
      * @param array<Result|Value> $children
      */
-    private function getNestedOptions(array $children): array
+    private function getNestedOptions(array $children, string $type = ''): array
     {
         $result = [];
+        $supportsOffset = in_array($type, self::OFFSET_TYPES, true);
 
         foreach ($children as $child) {
             $key = $child->children[0]->value;
+
+            // offset:N as a single token, e.g. key = "offset:2"
+            if ($supportsOffset && preg_match('/\Aoffset:(\d+)\z/', $key, $m)) {
+                $result['offset'] = (int) $m[1];
+                continue;
+            }
 
             if (isset($result[$key])) {
                 throw new LogicException('Duplicate option key');

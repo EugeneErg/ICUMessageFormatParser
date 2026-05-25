@@ -32,63 +32,35 @@ final readonly class Skeleton implements Stringable
 
     public function __construct(
         public Format|Currency|MeasureUnit $format = Format::Decimal,
-
-        /** Use StandardNotation, NotationSimple, CompactShortNotation,
-         *  CompactLongNotation, ScientificNotation, or EngineeringNotation. */
         public NumberNotation|Notation $notation = new StandardNotation(),
-
         public Sign $sign = Sign::Auto,
-
         public UnitWidth $unitWidth = UnitWidth::Short,
-
         Precision|PrecisionFraction|PrecisionSignificant|PrecisionIncrement|null $precision = null,
-
         public Grouping $grouping = Grouping::Auto,
-
-        /** Scale multiplier. Must be != 0. */
         public float $scale = 1.0,
-
-        /** Integer-width specification. Replaces the old "zeros" shorthand. */
         public ?IntegerWidth $integerWidth = null,
-
         public ?RoundingMode $roundingMode = null,
-
         public DecimalSeparator $decimalSeparator = DecimalSeparator::Auto,
-
         public ?NumberingSystem $numberingSystem = null,
-    ) {
-        // --- scale ---
+    )
+    {
         if ($scale == 0.0) {
             throw new InvalidArgumentException('Skeleton: scale must not be zero.');
         }
 
-        // --- unitWidth compatibility ---
-        $unitWidthRequiresCurrency = $unitWidth === UnitWidth::IsoCode
-            || $unitWidth === UnitWidth::Hidden;
+        $unitWidthRequiresCurrency = $unitWidth === UnitWidth::IsoCode || $unitWidth === UnitWidth::Hidden;
         $unitWidthRequiresCurrencyOrMeasure = $unitWidth === UnitWidth::FullName;
 
         if ($unitWidthRequiresCurrency && !($format instanceof Currency)) {
-            throw new InvalidArgumentException(
-                "Skeleton: {$unitWidth->value} is only valid with a Currency format."
-            );
+            throw new InvalidArgumentException("Skeleton: {$unitWidth->value} is only valid with a Currency format.");
         }
 
-        if ($unitWidthRequiresCurrencyOrMeasure
-            && !($format instanceof Currency)
-            && !($format instanceof MeasureUnit)
-        ) {
-            throw new InvalidArgumentException(
-                'Skeleton: unit-width-full-name is only valid with Currency or MeasureUnit format.'
-            );
+        if ($unitWidthRequiresCurrencyOrMeasure && !($format instanceof Currency) && !($format instanceof MeasureUnit)) {
+            throw new InvalidArgumentException('Skeleton: unit-width-full-name is only valid with Currency or MeasureUnit format.');
         }
 
-        // --- currency precision compatibility ---
-        if ($precision === Precision::CurrencyStandard || $precision === Precision::CurrencyCash) {
-            if (!($format instanceof Currency)) {
-                throw new InvalidArgumentException(
-                    'Skeleton: precision-currency-* is only valid with a Currency format.'
-                );
-            }
+        if ($precision === Precision::CurrencyStandard || $precision === Precision::CurrencyCash && !$format instanceof Currency) {
+            throw new InvalidArgumentException('Skeleton: precision-currency-* is only valid with a Currency format.');
         }
 
         $this->precision = $precision ?? $this->defaultPrecision();
@@ -170,26 +142,23 @@ final readonly class Skeleton implements Stringable
         }
 
         // --- notation ---
-        $notationStr = (string) $this->notation;
+        $notationStr = (string)$this->notation;
 
         if ($notationStr !== '') {
             $tokens[] = $notationStr;
             $canBeSimple = false;
         }
 
-        // --- sign ---
         if ($this->sign !== Sign::Auto) {
             $tokens[] = $this->sign->value;
             $canBeSimple = false;
         }
 
-        // --- unitWidth ---
         if ($this->unitWidth !== UnitWidth::Short) {
             $tokens[] = $this->unitWidth->value;
             $canBeSimple = false;
         }
 
-        // --- precision ---
         $precToken = $this->precisionToken($this->precision);
         $defaultPrecToken = $this->precisionToken($this->defaultPrecision());
 
@@ -198,15 +167,12 @@ final readonly class Skeleton implements Stringable
             $canBeSimple = false;
         }
 
-        // --- grouping ---
         if ($this->grouping !== Grouping::Auto) {
             $tokens[] = $this->grouping->value;
             $canBeSimple = false;
         }
 
-        // --- scale / %x100 ---
         if ($this->format === Format::Percent && $this->scale == 100.0) {
-            // Concise %x100 form: replace 'percent' token with '%x100'
             $idx = array_search('percent', $tokens, true);
 
             if ($idx !== false) {
@@ -218,32 +184,27 @@ final readonly class Skeleton implements Stringable
             $canBeSimple = false;
         }
 
-        // --- integerWidth ---
         if ($this->integerWidth !== null) {
-            // Concise "000" form only when zeroFillTo > 0 and no upper bound
             if ($this->integerWidth->truncateAt === null && $this->integerWidth->zeroFillTo > 0) {
                 $tokens[] = str_repeat('0', $this->integerWidth->zeroFillTo);
             } else {
-                $tokens[] = (string) $this->integerWidth;
+                $tokens[] = (string)$this->integerWidth;
                 $canBeSimple = false;
             }
         }
 
-        // --- roundingMode ---
         if ($this->roundingMode !== null) {
             $tokens[] = $this->roundingMode->value;
             $canBeSimple = false;
         }
 
-        // --- decimalSeparator ---
         if ($this->decimalSeparator !== DecimalSeparator::Auto) {
             $tokens[] = $this->decimalSeparator->value;
             $canBeSimple = false;
         }
 
-        // --- numberingSystem ---
         if ($this->numberingSystem !== null) {
-            $tokens[] = (string) $this->numberingSystem;
+            $tokens[] = (string)$this->numberingSystem;
             $canBeSimple = false;
         }
 
@@ -271,9 +232,9 @@ final readonly class Skeleton implements Stringable
      */
     private static function applyToken(string $token, array &$args): void
     {
-        // ---- Notation ----
         if ($token === 'notation-simple') {
             $args['notation'] = new NotationSimple();
+
             return;
         }
 
@@ -334,48 +295,46 @@ final readonly class Skeleton implements Stringable
                 ? new ScientificOptions(exponentSign: $sciSign, minExponentDigits: $minExp)
                 : null;
             $args['notation'] = $isEngineering
-                ? new EngineeringNotation($opts)
+                ? new EngineeringNotation($opts ?? new ScientificOptions())
                 : new ScientificNotation($opts);
+
             return;
         }
-
-        // ---- Format ----
         if ($token === '%x100') {
             $args['format'] = Format::Percent;
             $args['scale'] = 100.0;
+
             return;
         }
 
         if ($token === '%') {
             $args['format'] = Format::Percent;
+
             return;
         }
 
         if (str_starts_with($token, 'currency/')) {
             $args['format'] = new Currency(substr($token, 9));
+
             return;
         }
 
         if (str_starts_with($token, 'measure-unit/')) {
             $existing = $args['format'] ?? Format::Decimal;
-            $args['format'] = new MeasureUnit(
-                unit: substr($token, 13),
-                perUnit: $existing instanceof MeasureUnit ? $existing->perUnit : null,
-            );
+            $args['format'] = new MeasureUnit(unit: substr($token, 13), perUnit: $existing instanceof MeasureUnit ? $existing->perUnit : null);
+
             return;
         }
-
         if (str_starts_with($token, 'per-measure-unit/')) {
             $existing = $args['format'] ?? Format::Decimal;
-            $args['format'] = new MeasureUnit(
-                unit: $existing instanceof MeasureUnit ? $existing->unit : '',
-                perUnit: substr($token, 17),
-            );
+            $args['format'] = new MeasureUnit(unit: $existing instanceof MeasureUnit ? $existing->unit : '', perUnit: substr($token, 17));
+
             return;
         }
 
         if (str_starts_with($token, 'unit/')) {
             $args['format'] = new MeasureUnit(unit: substr($token, 5));
+
             return;
         }
 
@@ -383,14 +342,15 @@ final readonly class Skeleton implements Stringable
 
         if ($format !== null) {
             $args['format'] = $format;
+
             return;
         }
 
-        // ---- Sign ----
         $conciseSign = self::parseConciseSign($token);
 
         if ($conciseSign !== null) {
             $args['sign'] = $conciseSign;
+
             return;
         }
 
@@ -398,27 +358,27 @@ final readonly class Skeleton implements Stringable
 
         if ($sign !== null) {
             $args['sign'] = $sign;
+
             return;
         }
 
-        // ---- UnitWidth ----
         $unitWidth = UnitWidth::tryFrom($token);
 
         if ($unitWidth !== null) {
             $args['unitWidth'] = $unitWidth;
+
             return;
         }
 
-        // ---- Precision ----
         if ($token === 'precision-unlimited') {
             $args['precision'] = Precision::Unlimited;
+
             return;
         }
 
         if ($token === 'precision-integer' || $token === 'precision-integer/w') {
-            $args['precision'] = str_ends_with($token, '/w')
-                ? new PrecisionFraction(0, 0, true)
-                : Precision::Integer;
+            $args['precision'] = str_ends_with($token, '/w') ? new PrecisionFraction(0, 0, true) : Precision::Integer;
+
             return;
         }
 
@@ -426,47 +386,52 @@ final readonly class Skeleton implements Stringable
 
         if ($namedPrecision !== null) {
             $args['precision'] = $namedPrecision;
+
             return;
         }
 
         if (str_starts_with($token, 'precision-increment/')) {
-            $args['precision'] = new PrecisionIncrement((float) substr($token, 20));
+            $args['precision'] = new PrecisionIncrement((float)substr($token, 20));
+
             return;
         }
 
         if (str_starts_with($token, '.')) {
             $args['precision'] = self::parseFractionPrecision($token);
+
             return;
         }
 
         if ($token === '.') {
             $args['precision'] = new PrecisionFraction(0, 0);
+
             return;
         }
 
         if (str_starts_with($token, '@')) {
             $args['precision'] = self::parseSignificantDigits($token);
+
             return;
         }
 
-        // ---- RoundingMode ----
         $roundingMode = RoundingMode::tryFrom($token);
 
         if ($roundingMode !== null) {
             $args['roundingMode'] = $roundingMode;
+
             return;
         }
 
-        // ---- Grouping ----
         $conciseGrouping = match ($token) {
             ',_' => Grouping::Off,
             ',?' => Grouping::Min2,
             ',!' => Grouping::OnAligned,
-            default => null,
+            default => null
         };
 
         if ($conciseGrouping !== null) {
             $args['grouping'] = $conciseGrouping;
+
             return;
         }
 
@@ -474,56 +439,62 @@ final readonly class Skeleton implements Stringable
 
         if ($grouping !== null) {
             $args['grouping'] = $grouping;
+
             return;
         }
 
         // ---- Scale ----
         if (str_starts_with($token, 'scale/')) {
             $args['scale'] = (float) substr($token, 6);
+
             return;
         }
 
         // ---- IntegerWidth ----
         if ($token === 'integer-width-trunc') {
             $args['integerWidth'] = IntegerWidth::trunc();
+
             return;
         }
 
         if (str_starts_with($token, 'integer-width/')) {
             $args['integerWidth'] = self::parseIntegerWidth(substr($token, 14));
+
             return;
         }
 
         if (str_starts_with($token, 'integer-width/*')) {
             $zeros = substr($token, 15);
             $args['integerWidth'] = IntegerWidth::fromConcise(strlen($zeros));
+
             return;
         }
 
-        // Concise "000" form → IntegerWidth (replaces the old "zeros" field)
         $zeros = self::parseZeros($token);
 
         if ($zeros !== null) {
             $args['integerWidth'] = IntegerWidth::fromConcise($zeros);
+
             return;
         }
 
-        // ---- DecimalSeparator ----
         $decimal = DecimalSeparator::tryFrom($token);
 
         if ($decimal !== null) {
             $args['decimalSeparator'] = $decimal;
+
             return;
         }
 
-        // ---- NumberingSystem ----
         if ($token === 'latin') {
             $args['numberingSystem'] = new NumberingSystem('latin');
+
             return;
         }
 
         if (str_starts_with($token, 'numbering-system/')) {
             $args['numberingSystem'] = new NumberingSystem(substr($token, 17));
+
             return;
         }
 
@@ -595,23 +566,20 @@ final readonly class Skeleton implements Stringable
 
         preg_match('/\A(#*)(0*)\z/', $option, $m);
 
-        return new IntegerWidth(
-            zeroFillTo: strlen($m[2]),
-            truncateAt: strlen($m[2]) + strlen($m[1]),
-        );
+        return new IntegerWidth(zeroFillTo: strlen($m[2]), truncateAt: strlen($m[2]) + strlen($m[1]));
     }
 
     private static function parseConciseSign(string $token): ?Sign
     {
         return match ($token) {
-            '+!'  => Sign::Always,
-            '+_'  => Sign::Never,
-            '+?'  => Sign::ExceptZero,
-            '()'  => Sign::Accounting,
+            '+!' => Sign::Always,
+            '+_' => Sign::Never,
+            '+?' => Sign::ExceptZero,
+            '()' => Sign::Accounting,
             '()!' => Sign::AccountingAlways,
             '()?' => Sign::AccountingExceptZero,
             '()-' => Sign::AccountingNegative,
-            '+-'  => Sign::Negative,
+            '+-' => Sign::Negative,
             default => null,
         };
     }
@@ -653,22 +621,16 @@ final readonly class Skeleton implements Stringable
             return new PrecisionFraction(minFraction: 0, maxFraction: 2);
         }
 
-        if ($this->notation instanceof ScientificNotation
-            || $this->notation instanceof EngineeringNotation
-        ) {
+        if ($this->notation instanceof ScientificNotation || $this->notation instanceof EngineeringNotation) {
             return new PrecisionFraction(minFraction: 6, maxFraction: 6);
         }
 
         return match ($this->format) {
             Format::Percent,
             Format::Integer => Precision::Integer,
-            default         => new PrecisionFraction(minFraction: 0, maxFraction: 2),
+            default => new PrecisionFraction(minFraction: 0, maxFraction: 2),
         };
     }
-
-    // ------------------------------------------------------------------
-    // Utilities
-    // ------------------------------------------------------------------
 
     private static function formatFloat(float $value): string
     {

@@ -1,6 +1,9 @@
 <?php
+
 declare(strict_types = 1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\SelectOrdinal;
 use PHPUnit\Framework\TestCase;
@@ -43,5 +46,40 @@ final class SelectOrdinalTest extends TestCase
         $str = (string) $s;
         self::assertStringContainsString('=1 {first}', $str);
         self::assertStringContainsString('=2 {second}', $str);
+    }
+
+    // -----------------------------------------------------------------------
+    // offset support
+    // -----------------------------------------------------------------------
+
+    public function testSelectOrdinalOffsetDefault(): void
+    {
+        $s = SelectOrdinal::create('n', ['one' => [new Pattern('#st')], 'other' => [new Pattern('#th')]]);
+        self::assertSame(0, $s->offset);
+    }
+
+    public function testSelectOrdinalOffsetSerialisation(): void
+    {
+        $s = SelectOrdinal::create('n', [
+            'offset' => 1,
+            'one'    => [new Pattern('#st')],
+            'other'  => [new Pattern('#th')],
+        ]);
+        $str = (string) $s;
+        self::assertStringContainsString('offset:1', $str);
+        self::assertMatchesRegularExpression('/\{n, selectordinal, offset:1 /', $str);
+    }
+
+    public function testSelectOrdinalOffsetZeroNotSerialisedExplicitly(): void
+    {
+        $s = SelectOrdinal::create('n', ['other' => [new Pattern('#th')]]);
+        self::assertStringNotContainsString('offset:', (string) $s);
+    }
+
+    public function testSelectOrdinalOffsetPreservedInReplaceRecursive(): void
+    {
+        $s        = SelectOrdinal::create('n', ['offset' => 2, 'other' => [new Pattern('#th')]]);
+        $replaced = $s->replaceRecursive([]);
+        self::assertSame(2, $replaced->offset);
     }
 }

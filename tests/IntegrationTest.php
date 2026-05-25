@@ -448,4 +448,77 @@ final class IntegrationTest extends TestCase
             self::assertStringContainsString('{date, date, short}', (string) $v->types);
         }
     }
+
+    // -----------------------------------------------------------------------
+    // plural / selectordinal offset
+    // -----------------------------------------------------------------------
+
+    public function testPluralOffsetSerialisation(): void
+    {
+        $p = Plural::create('n', [
+            'offset' => 2,
+            '=2'     => [new Pattern('just the two of you')],
+            'one'    => [new Pattern('you and # other person')],
+            'other'  => [new Pattern('you and # other people')],
+        ]);
+
+        $str = (string) $p;
+        self::assertStringContainsString('{n, plural, offset:2', $str);
+        self::assertStringContainsString('=2 {just the two of you}',          $str);
+        self::assertStringContainsString('one {you and # other person}',       $str);
+        self::assertStringContainsString('other {you and # other people}',     $str);
+    }
+
+    public function testPluralOffsetInTypes(): void
+    {
+        $types = new Types([
+            new Pattern('Join: '),
+            Plural::create('n', [
+                'offset' => 1,
+                '=1'     => [new Pattern('just you')],
+                'one'    => [new Pattern('you and # other')],
+                'other'  => [new Pattern('you and # others')],
+            ]),
+        ]);
+
+        self::assertStringContainsString('offset:1', (string) $types);
+        // Variants: =1 + one + other(null) = 3
+        self::assertCount(3, $types->getAllVariants());
+    }
+
+    public function testPluralOffsetZeroOmittedFromOutput(): void
+    {
+        $p = Plural::create('n', ['one' => [new Pattern('item')], 'other' => [new Pattern('items')]]);
+        self::assertStringNotContainsString('offset:', (string) $p);
+    }
+
+    public function testPluralOffsetPreservedThroughReplaceRecursive(): void
+    {
+        $p      = Plural::create('n', ['offset' => 3, 'other' => [new Pattern('many')]]);
+        $result = (new Types([$p]))->replaceRecursive([]);
+        self::assertStringContainsString('offset:3', (string) $result);
+    }
+
+    public function testSelectOrdinalWithOffset(): void
+    {
+        $so  = SelectOrdinal::create('place', [
+            'offset' => 1,
+            'one'    => [new Pattern('#st runner-up')],
+            'other'  => [new Pattern('#th runner-up')],
+        ]);
+        self::assertStringContainsString('selectordinal, offset:1', (string) $so);
+    }
+
+    public function testPluralOffsetCreateApiWithIntKey(): void
+    {
+        // 'offset' => int is the programmatic API; Parser::getNestedOptions
+        // converts "offset:N" string key to ['offset' => N] before calling create()
+        $p = Plural::create('n', [
+            'offset' => 2,
+            'one'    => [new Pattern('you and # other')],
+            'other'  => [new Pattern('you and # others')],
+        ]);
+        self::assertSame(2, $p->offset);
+        self::assertStringContainsString('offset:2', (string) $p);
+    }
 }

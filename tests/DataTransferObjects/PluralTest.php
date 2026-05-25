@@ -1,8 +1,12 @@
 <?php
+
 declare(strict_types = 1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Plural;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
 use PHPUnit\Framework\TestCase;
 
@@ -97,5 +101,75 @@ final class PluralTest extends TestCase
         $variants = $this->makePlural()->getAllVariants();
         $oneVariant = array_filter($variants, fn ($v) => ($v->cases['plural']['count'] ?? null) === 'one');
         self::assertCount(1, $oneVariant);
+    }
+
+    // -----------------------------------------------------------------------
+    // offset support
+    // -----------------------------------------------------------------------
+
+    public function testOffsetDefaultIsZero(): void
+    {
+        $p = Plural::create('n', ['one' => [new Pattern('item')], 'other' => [new Pattern('items')]]);
+        self::assertSame(0, $p->offset);
+    }
+
+    public function testOffsetStoredCorrectly(): void
+    {
+        $p = Plural::create('n', ['offset' => 2, 'one' => [new Pattern('# other')], 'other' => [new Pattern('# others')]]);
+        self::assertSame(2, $p->offset);
+    }
+
+    public function testOffsetSerialisation(): void
+    {
+        $p = Plural::create('n', [
+            'offset' => 2,
+            '=2'     => [new Pattern('just you two')],
+            'one'    => [new Pattern('you and # other')],
+            'other'  => [new Pattern('you and # others')],
+        ]);
+        $str = (string) $p;
+        self::assertStringContainsString('offset:2', $str);
+        self::assertStringContainsString('=2 {just you two}', $str);
+        self::assertStringContainsString('one {you and # other}', $str);
+        self::assertStringContainsString('other {you and # others}', $str);
+        self::assertMatchesRegularExpression('/\{n, plural, offset:2 /', $str);
+    }
+
+    public function testOffsetZeroNotSerialisedExplicitly(): void
+    {
+        $p = Plural::create('n', ['other' => [new Pattern('items')]]);
+        self::assertStringNotContainsString('offset:', (string) $p);
+    }
+
+    public function testOffsetPreservedInReplaceRecursive(): void
+    {
+        $p        = Plural::create('n', ['offset' => 3, 'other' => [new Pattern('many')]]);
+        $replaced = $p->replaceRecursive([]);
+        self::assertSame(3, $replaced->offset);
+    }
+
+    public function testOffsetWithNumericExactMatch(): void
+    {
+        $p = Plural::create('n', [
+            'offset' => 1,
+            '=1'     => [new Pattern('only you')],
+            'one'    => [new Pattern('you and # other')],
+            'other'  => [new Pattern('you and # others')],
+        ]);
+        $str = (string) $p;
+        self::assertStringContainsString('=1 {only you}', $str);
+        self::assertStringContainsString('offset:1', $str);
+    }
+
+    public function testPluralDirectConstructorWithOffset(): void
+    {
+        $p = new Plural(
+            value:  'count',
+            other:  new Types([new Pattern('# others')]),
+            one:    new Types([new Pattern('# other')]),
+            offset: 5,
+        );
+        self::assertSame(5, $p->offset);
+        self::assertStringContainsString('offset:5', (string) $p);
     }
 }

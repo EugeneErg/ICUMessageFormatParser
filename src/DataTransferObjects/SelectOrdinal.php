@@ -9,7 +9,8 @@ use LogicException;
 final readonly class SelectOrdinal extends AbstractSelect
 {
     /**
-     * @param Types[] ...$numbers
+     * @param Types[] $numbers Exact-match cases keyed by numeric string
+     * @param int $offset Optional offset subtracted from value before ordinal evaluation
      */
     public function __construct(
         string $value,
@@ -20,6 +21,7 @@ final readonly class SelectOrdinal extends AbstractSelect
         public ?Types $few = null,
         public ?Types $many = null,
         public array $numbers = [],
+        public int $offset = 0,
     ) {
         parent::__construct($value);
     }
@@ -34,6 +36,11 @@ final readonly class SelectOrdinal extends AbstractSelect
         $arguments = [];
         $argumentNames = ['zero', 'one', 'two', 'few', 'many', 'other'];
 
+        if (isset($options['offset']) && is_int($options['offset'])) {
+            $arguments['offset'] = $options['offset'];
+            unset($options['offset']);
+        }
+
         foreach ($argumentNames as $argumentName) {
             if (isset($options[$argumentName])) {
                 $arguments[$argumentName] = (new Types($options[$argumentName]))->replaceVariableName('#', $value);
@@ -42,7 +49,7 @@ final readonly class SelectOrdinal extends AbstractSelect
         }
 
         foreach ($options as $key => $option) {
-            if (!preg_match('{=\d+}', $key)) {
+            if (!preg_match('/\A=\d+\z/', $key)) {
                 throw new LogicException('Invalid option "' . $key . '"');
             }
 
@@ -60,7 +67,9 @@ final readonly class SelectOrdinal extends AbstractSelect
             $options[] = $key . ' {' . $value->replaceVariableName($this->value, '#') . '}';
         }
 
-        return '{' . $this->value . ', selectordinal, ' . implode(' ', $options) . '}';
+        $offset = $this->offset !== 0 ? ' offset:' . $this->offset : '';
+
+        return '{' . $this->value . ', selectordinal,' . $offset . ' ' . implode(' ', $options) . '}';
     }
 
     public function replaceRecursive(array $replace): self
@@ -74,6 +83,7 @@ final readonly class SelectOrdinal extends AbstractSelect
             few: $this->few?->replaceRecursive($replace),
             many: $this->many?->replaceRecursive($replace),
             numbers: array_map(static fn (Types $types) => $types->replaceRecursive($replace), $this->numbers),
+            offset: $this->offset,
         );
     }
 

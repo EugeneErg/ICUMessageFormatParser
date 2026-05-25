@@ -48,7 +48,7 @@ final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
     {
         $option = $this->makeOption();
 
-        return '{' . $this->value . ', date' . ($option === null ? '' : ', ' . $option) . '}';
+        return '{' . $this->value . ', time' . ($option === null ? '' : ', ' . $option) . '}';
     }
 
     private function makeOption(): ?string

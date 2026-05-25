@@ -1,6 +1,9 @@
 <?php
+
 declare(strict_types = 1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Select;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
@@ -18,7 +21,10 @@ final class SelectTest extends TestCase
         ]);
     }
 
-    public function testGetName(): void { self::assertSame('select', Select::getName()); }
+    public function testGetName(): void
+    {
+        self::assertSame('select', Select::getName());
+    }
 
     public function testToString(): void
     {
@@ -30,7 +36,10 @@ final class SelectTest extends TestCase
         self::assertStringContainsString('other {They}', $str);
     }
 
-    public function testGetValue(): void { self::assertSame('gender', $this->makeSelect()->getValue()); }
+    public function testGetValue(): void
+    {
+        self::assertSame('gender', $this->makeSelect()->getValue());
+    }
 
     public function testGetAllVariables(): void
     {
