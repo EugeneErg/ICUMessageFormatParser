@@ -1,16 +1,26 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeVariableInterface;
 
+use function count;
+use function is_string;
+
 final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
 {
     public function __construct(public string $value, public DateTimeFormat|Message|string $format = DateTimeFormat::Medium)
     {
+    }
+
+    public function __toString(): string
+    {
+        $option = $this->makeOption();
+
+        return '{' . $this->value . ', time' . ($option === null ? '' : ', ' . $option) . '}';
     }
 
     public static function create(string $value, array $options = []): self
@@ -44,14 +54,22 @@ final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
         return new Message(...$options);
     }
 
-    public function __toString(): string
+    public function getAllVariants(array $cases = []): array
     {
-        $option = $this->makeOption();
-
-        return '{' . $this->value . ', time' . ($option === null ? '' : ', ' . $option) . '}';
+        return [new Variant(types: new Types([$this]))];
     }
 
-    private function makeOption(): ?string
+    public function getAllVariables(): array
+    {
+        return [$this->value];
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
+
+    private function makeOption(): string|null
     {
         if ($this->format === DateTimeFormat::Medium) {
             return null;
@@ -66,20 +84,5 @@ final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
         }
 
         return (string) $this->format;
-    }
-
-    public function getAllVariants(array $cases = []): array
-    {
-        return [new Variant(types: new Types([$this]))];
-    }
-
-    public function getAllVariables(): array
-    {
-        return [$this->value];
-    }
-
-    public function getValue(): string
-    {
-        return $this->value;
     }
 }

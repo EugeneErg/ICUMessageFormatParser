@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
@@ -11,7 +11,7 @@ final readonly class MeasureUnit implements Stringable
 {
     public function __construct(
         public string $unit,
-        public ?string $perUnit = null,
+        public string|null $perUnit = null,
     ) {
         if ($unit === '') {
             throw new InvalidArgumentException('MeasureUnit: unit must not be empty.');

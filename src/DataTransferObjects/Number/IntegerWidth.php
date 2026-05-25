@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
@@ -11,11 +11,11 @@ final readonly class IntegerWidth implements Stringable
 {
     public function __construct(
         public int $zeroFillTo = 1,
-        public ?int $truncateAt = null,
+        public int|null $truncateAt = null,
     ) {
         if ($zeroFillTo < 0) {
             throw new InvalidArgumentException(
-                "IntegerWidth: zeroFillTo must be >= 0, got $zeroFillTo."
+                "IntegerWidth: zeroFillTo must be >= 0, got {$zeroFillTo}.",
             );
         }
 
@@ -24,19 +24,9 @@ final readonly class IntegerWidth implements Stringable
 
         if (!$isTrunc && $truncateAt !== null && $truncateAt < $zeroFillTo) {
             throw new InvalidArgumentException(
-                "IntegerWidth: truncateAt ($truncateAt) must be >= zeroFillTo ($zeroFillTo)."
+                "IntegerWidth: truncateAt ({$truncateAt}) must be >= zeroFillTo ({$zeroFillTo}).",
             );
         }
-    }
-
-    public static function fromConcise(int $minDigits): self
-    {
-        return new self(zeroFillTo: $minDigits, truncateAt: null);
-    }
-
-    public static function trunc(): self
-    {
-        return new self(zeroFillTo: 0, truncateAt: 0);
     }
 
     public function __toString(): string
@@ -54,5 +44,15 @@ final readonly class IntegerWidth implements Stringable
         $hashes = str_repeat('#', max(0, $this->truncateAt - $this->zeroFillTo));
 
         return 'integer-width/' . $hashes . $zeros;
+    }
+
+    public static function fromConcise(int $minDigits): self
+    {
+        return new self(zeroFillTo: $minDigits, truncateAt: null);
+    }
+
+    public static function trunc(): self
+    {
+        return new self(zeroFillTo: 0, truncateAt: 0);
     }
 }

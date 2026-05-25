@@ -1,21 +1,53 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class VariableTest extends TestCase
 {
-    public function testToStringNamedVariable(): void { self::assertSame('{name}', (string) new Variable('name')); }
-    public function testToStringHashIsPlural(): void { self::assertSame('#', (string) new Variable('#')); }
-    public function testGetAllVariables(): void { self::assertSame(['count'], (new Variable('count'))->getAllVariables()); }
-    public function testGetValue(): void { self::assertSame('name', (new Variable('name'))->getValue()); }
-    public function testGetAllVariants(): void {
-        $v = (new Variable('x'))->getAllVariants();
-        self::assertCount(1, $v);
+    #[Test]
+    public function toStringNamedVariable(): void
+    {
+        $this->assertSame('{name}', (string) new Variable('name'));
     }
-    public function testCreate(): void {
+
+    #[Test]
+    public function toStringHashIsPlural(): void
+    {
+        $this->assertSame('#', (string) new Variable('#'));
+    }
+
+    #[Test]
+    public function getAllVariables(): void
+    {
+        $this->assertSame(['count'], (new Variable('count'))->getAllVariables());
+    }
+
+    #[Test]
+    public function getValue(): void
+    {
+        $this->assertSame('name', (new Variable('name'))->getValue());
+    }
+
+    #[Test]
+    public function getAllVariants(): void
+    {
+        $v = (new Variable('x'))->getAllVariants();
+        $this->assertCount(1, $v);
+    }
+
+    #[Test]
+    public function create(): void
+    {
         $v = Variable::create('test');
-        self::assertSame('test', $v->value);
+        $this->assertSame('test', $v->value);
     }
 }

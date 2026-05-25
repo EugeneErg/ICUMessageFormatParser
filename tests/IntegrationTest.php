@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Tests;
 
@@ -22,11 +22,14 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Time;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Integration tests building Types objects manually, testing getAllVariants,
  * serialisation, and the replaceRecursive/setValues mechanics.
+ *
+ * @internal
  */
 final class IntegrationTest extends TestCase
 {
@@ -34,15 +37,17 @@ final class IntegrationTest extends TestCase
     // Simple serialisation
     // -----------------------------------------------------------------------
 
-    public function testSimplePatternRoundtrip(): void
+    #[Test]
+    public function simplePatternRoundtrip(): void
     {
-        self::assertSame('Hello World', (string) new Types([new Pattern('Hello World')]));
+        $this->assertSame('Hello World', (string) new Types([new Pattern('Hello World')]));
     }
 
-    public function testVariableInterpolation(): void
+    #[Test]
+    public function variableInterpolation(): void
     {
         $types = new Types([new Pattern('Hello '), new Variable('name'), new Pattern('!')]);
-        self::assertSame('Hello {name}!', (string) $types);
+        $this->assertSame('Hello {name}!', (string) $types);
     }
 
     /**
@@ -50,150 +55,161 @@ final class IntegrationTest extends TestCase
      * Text::__toString() wraps the value in ICU single-quotes (e.g. 'Alice').
      * That is the correct ICU string representation for a literal text segment.
      */
-    public function testSetValuesProducesIcuQuotedText(): void
+    #[Test]
+    public function setValuesProducesIcuQuotedText(): void
     {
         $types = new Types([new Pattern('Hi '), new Variable('name')]);
         $result = $types->setValues(['name' => 'Alice']);
         // Pattern "Hi " serialises directly; Text "Alice" becomes 'Alice'
-        self::assertSame("Hi 'Alice'", (string) $result);
+        $this->assertSame("Hi 'Alice'", (string) $result);
     }
 
-    public function testSetValuesUnknownKeyLeavesVariableIntact(): void
+    #[Test]
+    public function setValuesUnknownKeyLeavesVariableIntact(): void
     {
         $types = new Types([new Variable('name')]);
         $result = $types->setValues(['other' => 'x']);
-        self::assertInstanceOf(Variable::class, $result->types[0]);
+        $this->assertInstanceOf(Variable::class, $result->types[0]);
     }
 
     // -----------------------------------------------------------------------
     // Select
     // -----------------------------------------------------------------------
 
-    public function testSelectFlatteningProducesAllVariants(): void
+    #[Test]
+    public function selectFlatteningProducesAllVariants(): void
     {
         $types = new Types([
             Select::create('gender', [
-                'male'   => [new Pattern('He')],
+                'male' => [new Pattern('He')],
                 'female' => [new Pattern('She')],
-                'other'  => [new Pattern('They')],
+                'other' => [new Pattern('They')],
             ]),
             new Pattern(' liked this.'),
         ]);
 
         $variants = $types->getAllVariants();
-        self::assertCount(3, $variants);
+        $this->assertCount(3, $variants);
 
-        $texts = array_map(fn ($v) => (string) $v->types, $variants);
-        self::assertContains('He liked this.',   $texts);
-        self::assertContains('She liked this.',  $texts);
-        self::assertContains('They liked this.', $texts);
+        $texts = array_map(static fn($v) => (string) $v->types, $variants);
+        $this->assertContains('He liked this.', $texts);
+        $this->assertContains('She liked this.', $texts);
+        $this->assertContains('They liked this.', $texts);
     }
 
-    public function testSelectSerialisationContainsAllBranches(): void
+    #[Test]
+    public function selectSerialisationContainsAllBranches(): void
     {
         $select = Select::create('gender', [
-            'male'   => [new Pattern('He')],
+            'male' => [new Pattern('He')],
             'female' => [new Pattern('She')],
-            'other'  => [new Pattern('They')],
+            'other' => [new Pattern('They')],
         ]);
         $str = (string) $select;
-        self::assertStringContainsString('{gender, select,', $str);
-        self::assertStringContainsString('male {He}',        $str);
-        self::assertStringContainsString('female {She}',     $str);
-        self::assertStringContainsString('other {They}',     $str);
+        $this->assertStringContainsString('{gender, select,', $str);
+        $this->assertStringContainsString('male {He}', $str);
+        $this->assertStringContainsString('female {She}', $str);
+        $this->assertStringContainsString('other {They}', $str);
     }
 
-    public function testSelectVariantCasesCarryBranchLabel(): void
+    #[Test]
+    public function selectVariantCasesCarryBranchLabel(): void
     {
         $variants = Select::create('gender', [
-            'male'  => [new Pattern('He')],
+            'male' => [new Pattern('He')],
             'other' => [new Pattern('They')],
         ])->getAllVariants();
 
-        $maleVariants = array_filter($variants, fn ($v) => ($v->cases['select']['gender'] ?? null) === 'male');
-        self::assertCount(1, $maleVariants);
+        $maleVariants = array_filter($variants, static fn($v) => ($v->cases['select']['gender'] ?? null) === 'male');
+        $this->assertCount(1, $maleVariants);
     }
 
     // -----------------------------------------------------------------------
     // Plural
     // -----------------------------------------------------------------------
 
-    public function testPluralFlatteningOneAndOther(): void
+    #[Test]
+    public function pluralFlatteningOneAndOther(): void
     {
         $types = new Types([
             Plural::create('count', [
-                'one'   => [new Pattern('1 item')],
+                'one' => [new Pattern('1 item')],
                 'other' => [new Variable('#'), new Pattern(' items')],
             ]),
         ]);
 
         $variants = $types->getAllVariants();
-        self::assertCount(2, $variants);
+        $this->assertCount(2, $variants);
 
-        $texts = array_map(fn ($v) => (string) $v->types, $variants);
-        self::assertContains('1 item',        $texts);
+        $texts = array_map(static fn($v) => (string) $v->types, $variants);
+        $this->assertContains('1 item', $texts);
         // '#' replaced by 'count' variable during create()
-        self::assertContains('{count} items', $texts);
+        $this->assertContains('{count} items', $texts);
     }
 
-    public function testPluralAllNamedCasesInOutput(): void
+    #[Test]
+    public function pluralAllNamedCasesInOutput(): void
     {
         $p = Plural::create('n', [
-            'zero'  => [new Pattern('zero')],
-            'one'   => [new Pattern('one')],
-            'two'   => [new Pattern('two')],
-            'few'   => [new Pattern('few')],
-            'many'  => [new Pattern('many')],
+            'zero' => [new Pattern('zero')],
+            'one' => [new Pattern('one')],
+            'two' => [new Pattern('two')],
+            'few' => [new Pattern('few')],
+            'many' => [new Pattern('many')],
             'other' => [new Pattern('other')],
         ]);
         $str = (string) $p;
-        foreach (['zero','one','two','few','many','other'] as $key) {
-            self::assertStringContainsString($key . ' {' . $key . '}', $str);
+
+        foreach (['zero', 'one', 'two', 'few', 'many', 'other'] as $key) {
+            $this->assertStringContainsString($key . ' {' . $key . '}', $str);
         }
     }
 
-    public function testPluralNumericEquality(): void
+    #[Test]
+    public function pluralNumericEquality(): void
     {
         $p = Plural::create('n', [
-            '=0'    => [new Pattern('none')],
-            '=1'    => [new Pattern('one')],
+            '=0' => [new Pattern('none')],
+            '=1' => [new Pattern('one')],
             'other' => [new Pattern('many')],
         ]);
         $str = (string) $p;
-        self::assertStringContainsString('=0 {none}', $str);
-        self::assertStringContainsString('=1 {one}',  $str);
+        $this->assertStringContainsString('=0 {none}', $str);
+        $this->assertStringContainsString('=1 {one}', $str);
     }
 
-    public function testPluralHashBecomesVariableInVariants(): void
+    #[Test]
+    public function pluralHashBecomesVariableInVariants(): void
     {
         // Variable('#') inside plural options is replaced by Variable('count')
         $p = Plural::create('count', [
-            'one'   => [new Pattern('1 item')],
+            'one' => [new Pattern('1 item')],
             'other' => [new Variable('#'), new Pattern(' items')],
         ]);
         $variants = (new Types([$p]))->getAllVariants();
         $otherText = (string) $variants[array_key_last($variants)]->types;
-        self::assertStringContainsString('{count}', $otherText);
+        $this->assertStringContainsString('{count}', $otherText);
     }
 
     // -----------------------------------------------------------------------
     // Nested branching  (Select inside Plural)
     // -----------------------------------------------------------------------
 
-    public function testNestedSelectInsidePluralVariantCount(): void
+    #[Test]
+    public function nestedSelectInsidePluralVariantCount(): void
     {
         // Plural(one|other) × Select(male|other) = 4 variants
         $types = new Types([
             Plural::create('count', [
-                'one'   => [
+                'one' => [
                     Select::create('gender', [
-                        'male'  => [new Pattern('He has 1 item')],
+                        'male' => [new Pattern('He has 1 item')],
                         'other' => [new Pattern('They have 1 item')],
                     ]),
                 ],
                 'other' => [
                     Select::create('gender', [
-                        'male'  => [new Variable('#'), new Pattern(' items for him')],
+                        'male' => [new Variable('#'), new Pattern(' items for him')],
                         'other' => [new Variable('#'), new Pattern(' items for them')],
                     ]),
                 ],
@@ -201,7 +217,7 @@ final class IntegrationTest extends TestCase
         ]);
 
         $variants = $types->getAllVariants();
-        self::assertCount(4, $variants);
+        $this->assertCount(4, $variants);
     }
 
     /**
@@ -216,72 +232,77 @@ final class IntegrationTest extends TestCase
      *   Variable('#') inside Select inside Plural → Variable('gender') (Select replaces first)
      *   then Plural replaces '#' at its own option level — but the Select was already created.
      */
-    public function testNestedSelectInsidePluralContentTexts(): void
+    #[Test]
+    public function nestedSelectInsidePluralContentTexts(): void
     {
         $types = new Types([
             Plural::create('count', [
-                'one'   => [
+                'one' => [
                     Select::create('gender', [
-                        'male'  => [new Pattern('He has 1 item')],
+                        'male' => [new Pattern('He has 1 item')],
                         'other' => [new Pattern('They have 1 item')],
                     ]),
                 ],
                 'other' => [
                     Select::create('gender', [
-                        'male'  => [new Variable('#'), new Pattern(' items for him')],
+                        'male' => [new Variable('#'), new Pattern(' items for him')],
                         'other' => [new Variable('#'), new Pattern(' items for them')],
                     ]),
                 ],
             ]),
         ]);
 
-        $texts = array_map(fn ($v) => (string) $v->types, $types->getAllVariants());
-        self::assertContains('He has 1 item',    $texts);
-        self::assertContains('They have 1 item', $texts);
+        $texts = array_map(static fn($v) => (string) $v->types, $types->getAllVariants());
+        $this->assertContains('He has 1 item', $texts);
+        $this->assertContains('They have 1 item', $texts);
         // '#' in the nested Select was not under Plural's replaceVariableName scope
         // (Select::create already ran); the actual variable name in variants is 'gender'
-        $hasHim   = array_filter($texts, fn ($t) => str_contains($t, 'items for him'));
-        $hasThem  = array_filter($texts, fn ($t) => str_contains($t, 'items for them'));
-        self::assertNotEmpty($hasHim);
-        self::assertNotEmpty($hasThem);
+        $hasHim = array_filter($texts, static fn($t) => str_contains($t, 'items for him'));
+        $hasThem = array_filter($texts, static fn($t) => str_contains($t, 'items for them'));
+        $this->assertNotEmpty($hasHim);
+        $this->assertNotEmpty($hasThem);
     }
 
     // -----------------------------------------------------------------------
     // Cases / replaceRecursive
     // -----------------------------------------------------------------------
 
-    public function testCasesStructure(): void
+    #[Test]
+    public function casesStructure(): void
     {
-        $types   = [new Types([new Pattern('Hello')]), new Types([new Pattern('World')])];
-        $cases   = new Cases($types, new Types([new Pattern('test')]));
-        self::assertCount(2, $cases->types);
-        self::assertSame('test', (string) $cases->variator);
+        $types = [new Types([new Pattern('Hello')]), new Types([new Pattern('World')])];
+        $cases = new Cases($types, new Types([new Pattern('test')]));
+        $this->assertCount(2, $cases->types);
+        $this->assertSame('test', (string) $cases->variator);
     }
 
-    public function testReplaceRecursivePlaceholderReplacement(): void
+    #[Test]
+    public function replaceRecursivePlaceholderReplacement(): void
     {
-        $placeholder  = new Types([new Pattern('PLACEHOLDER')]);
-        $replacement  = new Types([new Pattern('REPLACED')]);
+        $placeholder = new Types([new Pattern('PLACEHOLDER')]);
+        $replacement = new Types([new Pattern('REPLACED')]);
         $result = $placeholder->replaceRecursive(['PLACEHOLDER' => $replacement]);
-        self::assertSame('REPLACED', (string) $result);
+        $this->assertSame('REPLACED', (string) $result);
     }
 
-    public function testReplaceRecursiveOnSelectPassesThrough(): void
+    #[Test]
+    public function replaceRecursiveOnSelectPassesThrough(): void
     {
         $select = Select::create('gender', [
-            'male'  => [new Pattern('He')],
+            'male' => [new Pattern('He')],
             'other' => [new Pattern('They')],
         ]);
-        $types  = new Types([$select]);
+        $types = new Types([$select]);
         $result = $types->replaceRecursive([]);
-        self::assertSame((string) $types, (string) $result);
+        $this->assertSame((string) $types, (string) $result);
     }
 
     // -----------------------------------------------------------------------
     // getAllVariables
     // -----------------------------------------------------------------------
 
-    public function testGetAllVariablesDeduplicates(): void
+    #[Test]
+    public function getAllVariablesDeduplicates(): void
     {
         $types = new Types([
             new Variable('name'),
@@ -292,7 +313,7 @@ final class IntegrationTest extends TestCase
         ]);
         $vars = $types->getAllVariables();
         sort($vars);
-        self::assertSame(['count', 'name'], $vars);
+        $this->assertSame(['count', 'name'], $vars);
     }
 
     /**
@@ -300,141 +321,154 @@ final class IntegrationTest extends TestCase
      * not the switch variable itself ('gender'). The select variable name is the ICU argument
      * name, not a placeholder to be substituted.
      */
-    public function testGetAllVariablesFromSelectReturnsContentVarsOnly(): void
+    #[Test]
+    public function getAllVariablesFromSelectReturnsContentVarsOnly(): void
     {
         $s = Select::create('gender', [
-            'male'  => [new Variable('name'), new Pattern(' is a man')],
+            'male' => [new Variable('name'), new Pattern(' is a man')],
             'other' => [new Variable('name'), new Pattern(' is a person')],
         ]);
         $vars = $s->getAllVariables();
-        self::assertContains('name', $vars);
+        $this->assertContains('name', $vars);
         // 'gender' is the switch argument, not returned as a substitution variable
-        self::assertNotContains('gender', $vars);
+        $this->assertNotContains('gender', $vars);
     }
 
-    public function testGetAllVariablesFromPluralIncludesBothLevels(): void
+    #[Test]
+    public function getAllVariablesFromPluralIncludesBothLevels(): void
     {
         $p = Plural::create('count', [
-            'one'   => [new Pattern('1 item')],
+            'one' => [new Pattern('1 item')],
             'other' => [new Variable('#'), new Pattern(' items')],
         ]);
         $vars = $p->getAllVariables();
         // '#' is replaced by 'count' in plural options
-        self::assertContains('count', $vars);
+        $this->assertContains('count', $vars);
     }
 
     // -----------------------------------------------------------------------
     // Quote
     // -----------------------------------------------------------------------
 
-    public function testQuoteConvertsVariablesToText(): void
+    #[Test]
+    public function quoteConvertsVariablesToText(): void
     {
-        $types  = new Types([new Variable('name'), new Pattern(' hello')]);
+        $types = new Types([new Variable('name'), new Pattern(' hello')]);
         $quoted = $types->quote();
-        $arr    = array_values($quoted->types);
-        self::assertInstanceOf(Text::class,    $arr[0]);
-        self::assertInstanceOf(Pattern::class, $arr[1]);
+        $arr = array_values($quoted->types);
+        $this->assertInstanceOf(Text::class, $arr[0]);
+        $this->assertInstanceOf(Pattern::class, $arr[1]);
     }
 
     // -----------------------------------------------------------------------
     // SelectOrdinal
     // -----------------------------------------------------------------------
 
-    public function testSelectOrdinalVariants(): void
+    #[Test]
+    public function selectOrdinalVariants(): void
     {
         $so = SelectOrdinal::create('place', [
-            'one'   => [new Pattern('1st')],
-            'two'   => [new Pattern('2nd')],
-            'few'   => [new Pattern('3rd')],
+            'one' => [new Pattern('1st')],
+            'two' => [new Pattern('2nd')],
+            'few' => [new Pattern('3rd')],
             'other' => [new Pattern('#th')],
         ]);
-        self::assertCount(4, $so->getAllVariants());
+        $this->assertCount(4, $so->getAllVariants());
     }
 
-    public function testSelectOrdinalToString(): void
+    #[Test]
+    public function selectOrdinalToString(): void
     {
-        $so  = SelectOrdinal::create('n', [
-            'one'   => [new Pattern('st')],
+        $so = SelectOrdinal::create('n', [
+            'one' => [new Pattern('st')],
             'other' => [new Pattern('th')],
         ]);
         $str = (string) $so;
-        self::assertStringContainsString('{n, selectordinal,', $str);
-        self::assertStringContainsString('one {st}',  $str);
-        self::assertStringContainsString('other {th}', $str);
+        $this->assertStringContainsString('{n, selectordinal,', $str);
+        $this->assertStringContainsString('one {st}', $str);
+        $this->assertStringContainsString('other {th}', $str);
     }
 
     // -----------------------------------------------------------------------
     // Number
     // -----------------------------------------------------------------------
 
-    public function testNumberWithCurrencySkeletonInMessage(): void
+    #[Test]
+    public function numberWithCurrencySkeletonInMessage(): void
     {
-        $n   = new Number('price', new Skeleton(new Currency('EUR')));
+        $n = new Number('price', new Skeleton(new Currency('EUR')));
         $str = (string) $n;
-        self::assertStringContainsString('price, number', $str);
-        self::assertStringContainsString('currency/EUR',  $str);
+        $this->assertStringContainsString('price, number', $str);
+        $this->assertStringContainsString('currency/EUR', $str);
     }
 
-    public function testNumberWithFractionPrecision(): void
+    #[Test]
+    public function numberWithFractionPrecision(): void
     {
-        $n   = new Number('amount', new Skeleton(precision: new PrecisionFraction(2, 2)));
+        $n = new Number('amount', new Skeleton(precision: new PrecisionFraction(2, 2)));
         $str = (string) $n;
-        self::assertStringContainsString('.00', $str);
+        $this->assertStringContainsString('.00', $str);
     }
 
     // -----------------------------------------------------------------------
     // Date / Time
     // -----------------------------------------------------------------------
 
-    public function testDateInMessage(): void
+    #[Test]
+    public function dateInMessage(): void
     {
         $types = new Types([new Pattern('Order placed on '), new Date('orderDate', DateTimeFormat::Long)]);
-        self::assertSame('Order placed on {orderDate, date, long}', (string) $types);
+        $this->assertSame('Order placed on {orderDate, date, long}', (string) $types);
     }
 
-    public function testTimeInMessage(): void
+    #[Test]
+    public function timeInMessage(): void
     {
         $types = new Types([new Pattern('At '), new Time('eventTime', DateTimeFormat::Short)]);
-        self::assertSame('At {eventTime, time, short}', (string) $types);
+        $this->assertSame('At {eventTime, time, short}', (string) $types);
     }
 
     // -----------------------------------------------------------------------
     // SpellOut / Duration / Ordinal
     // -----------------------------------------------------------------------
 
-    public function testSpellOutInMessage(): void
+    #[Test]
+    public function spellOutInMessage(): void
     {
         $types = new Types([new Pattern('You have '), new SpellOut('count'), new Pattern(' apples')]);
-        self::assertSame('You have {count, spellout} apples', (string) $types);
+        $this->assertSame('You have {count, spellout} apples', (string) $types);
     }
 
-    public function testDurationInMessage(): void
+    #[Test]
+    public function durationInMessage(): void
     {
         $types = new Types([new Pattern('Elapsed: '), new Duration('elapsed')]);
-        self::assertSame('Elapsed: {elapsed, duration}', (string) $types);
+        $this->assertSame('Elapsed: {elapsed, duration}', (string) $types);
     }
 
-    public function testOrdinalInMessage(): void
+    #[Test]
+    public function ordinalInMessage(): void
     {
         $types = new Types([new Pattern('You came in '), new Ordinal('rank'), new Pattern(' place')]);
-        self::assertSame('You came in {rank, ordinal} place', (string) $types);
+        $this->assertSame('You came in {rank, ordinal} place', (string) $types);
     }
 
     // -----------------------------------------------------------------------
     // Complex multi-variable message
     // -----------------------------------------------------------------------
 
-    public function testComplexMessageWithAllTypes(): void
+    #[Test]
+    public function complexMessageWithAllTypes(): void
     {
         $types = new Types([
             Select::create('gender', [
-                'male'   => [new Variable('name'), new Pattern(' received')],
+                'male' => [new Variable('name'), new Pattern(' received')],
                 'female' => [new Variable('name'), new Pattern(' received')],
-                'other'  => [new Variable('name'), new Pattern(' received')],
+                'other' => [new Variable('name'), new Pattern(' received')],
             ]),
             new Pattern(' '),
             Plural::create('count', [
-                'one'   => [new Pattern('1 message')],
+                'one' => [new Pattern('1 message')],
                 'other' => [new Variable('#'), new Pattern(' messages')],
             ]),
             new Pattern(' on '),
@@ -443,9 +477,10 @@ final class IntegrationTest extends TestCase
 
         $variants = $types->getAllVariants();
         // 3 gender × 2 plural = 6 variants
-        self::assertCount(6, $variants);
+        $this->assertCount(6, $variants);
+
         foreach ($variants as $v) {
-            self::assertStringContainsString('{date, date, short}', (string) $v->types);
+            $this->assertStringContainsString('{date, date, short}', (string) $v->types);
         }
     }
 
@@ -453,72 +488,78 @@ final class IntegrationTest extends TestCase
     // plural / selectordinal offset
     // -----------------------------------------------------------------------
 
-    public function testPluralOffsetSerialisation(): void
+    #[Test]
+    public function pluralOffsetSerialisation(): void
     {
         $p = Plural::create('n', [
             'offset' => 2,
-            '=2'     => [new Pattern('just the two of you')],
-            'one'    => [new Pattern('you and # other person')],
-            'other'  => [new Pattern('you and # other people')],
+            '=2' => [new Pattern('just the two of you')],
+            'one' => [new Pattern('you and # other person')],
+            'other' => [new Pattern('you and # other people')],
         ]);
 
         $str = (string) $p;
-        self::assertStringContainsString('{n, plural, offset:2', $str);
-        self::assertStringContainsString('=2 {just the two of you}',          $str);
-        self::assertStringContainsString('one {you and # other person}',       $str);
-        self::assertStringContainsString('other {you and # other people}',     $str);
+        $this->assertStringContainsString('{n, plural, offset:2', $str);
+        $this->assertStringContainsString('=2 {just the two of you}', $str);
+        $this->assertStringContainsString('one {you and # other person}', $str);
+        $this->assertStringContainsString('other {you and # other people}', $str);
     }
 
-    public function testPluralOffsetInTypes(): void
+    #[Test]
+    public function pluralOffsetInTypes(): void
     {
         $types = new Types([
             new Pattern('Join: '),
             Plural::create('n', [
                 'offset' => 1,
-                '=1'     => [new Pattern('just you')],
-                'one'    => [new Pattern('you and # other')],
-                'other'  => [new Pattern('you and # others')],
+                '=1' => [new Pattern('just you')],
+                'one' => [new Pattern('you and # other')],
+                'other' => [new Pattern('you and # others')],
             ]),
         ]);
 
-        self::assertStringContainsString('offset:1', (string) $types);
+        $this->assertStringContainsString('offset:1', (string) $types);
         // Variants: =1 + one + other(null) = 3
-        self::assertCount(3, $types->getAllVariants());
+        $this->assertCount(3, $types->getAllVariants());
     }
 
-    public function testPluralOffsetZeroOmittedFromOutput(): void
+    #[Test]
+    public function pluralOffsetZeroOmittedFromOutput(): void
     {
         $p = Plural::create('n', ['one' => [new Pattern('item')], 'other' => [new Pattern('items')]]);
-        self::assertStringNotContainsString('offset:', (string) $p);
+        $this->assertStringNotContainsString('offset:', (string) $p);
     }
 
-    public function testPluralOffsetPreservedThroughReplaceRecursive(): void
+    #[Test]
+    public function pluralOffsetPreservedThroughReplaceRecursive(): void
     {
-        $p      = Plural::create('n', ['offset' => 3, 'other' => [new Pattern('many')]]);
+        $p = Plural::create('n', ['offset' => 3, 'other' => [new Pattern('many')]]);
         $result = (new Types([$p]))->replaceRecursive([]);
-        self::assertStringContainsString('offset:3', (string) $result);
+        $this->assertStringContainsString('offset:3', (string) $result);
     }
 
-    public function testSelectOrdinalWithOffset(): void
+    #[Test]
+    public function selectOrdinalWithOffset(): void
     {
-        $so  = SelectOrdinal::create('place', [
+        $so = SelectOrdinal::create('place', [
             'offset' => 1,
-            'one'    => [new Pattern('#st runner-up')],
-            'other'  => [new Pattern('#th runner-up')],
+            'one' => [new Pattern('#st runner-up')],
+            'other' => [new Pattern('#th runner-up')],
         ]);
-        self::assertStringContainsString('selectordinal, offset:1', (string) $so);
+        $this->assertStringContainsString('selectordinal, offset:1', (string) $so);
     }
 
-    public function testPluralOffsetCreateApiWithIntKey(): void
+    #[Test]
+    public function pluralOffsetCreateApiWithIntKey(): void
     {
         // 'offset' => int is the programmatic API; Parser::getNestedOptions
         // converts "offset:N" string key to ['offset' => N] before calling create()
         $p = Plural::create('n', [
             'offset' => 2,
-            'one'    => [new Pattern('you and # other')],
-            'other'  => [new Pattern('you and # others')],
+            'one' => [new Pattern('you and # other')],
+            'other' => [new Pattern('you and # others')],
         ]);
-        self::assertSame(2, $p->offset);
-        self::assertStringContainsString('offset:2', (string) $p);
+        $this->assertSame(2, $p->offset);
+        $this->assertStringContainsString('offset:2', (string) $p);
     }
 }

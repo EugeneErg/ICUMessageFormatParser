@@ -1,33 +1,69 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class PatternTest extends TestCase
 {
-    public function testToString(): void { self::assertSame('Hello', (string) new Pattern('Hello')); }
-    public function testToStringEscapesQuotes(): void { self::assertSame("it''s", (string) new Pattern("it's")); }
-    public function testCreate(): void { self::assertSame('test', (new Pattern('test'))->value); }
-    public function testGetAllVariants(): void {
+    #[Test]
+    public function toString(): void
+    {
+        $this->assertSame('Hello', (string) new Pattern('Hello'));
+    }
+
+    #[Test]
+    public function toStringEscapesQuotes(): void
+    {
+        $this->assertSame("it''s", (string) new Pattern("it's"));
+    }
+
+    #[Test]
+    public function create(): void
+    {
+        $this->assertSame('test', (new Pattern('test'))->value);
+    }
+
+    #[Test]
+    public function getAllVariants(): void
+    {
         $p = new Pattern('hi');
         $v = $p->getAllVariants();
-        self::assertCount(1, $v);
-        self::assertSame('hi', (string) $v[0]->types);
+        $this->assertCount(1, $v);
+        $this->assertSame('hi', (string) $v[0]->types);
     }
-    public function testGetAllVariables(): void { self::assertSame([], (new Pattern('text'))->getAllVariables()); }
-    public function testMergeWithPattern(): void {
+
+    #[Test]
+    public function getAllVariables(): void
+    {
+        $this->assertSame([], (new Pattern('text'))->getAllVariables());
+    }
+
+    #[Test]
+    public function mergeWithPattern(): void
+    {
         $a = new Pattern('Hello ');
         $b = new Pattern('World');
         $merged = $a->merge($b);
-        self::assertCount(1, $merged);
-        self::assertSame('Hello World', $merged[0]->value);
+        $this->assertCount(1, $merged);
+        $this->assertSame('Hello World', $merged[0]->value);
     }
-    public function testMergeWithText(): void {
+
+    #[Test]
+    public function mergeWithText(): void
+    {
         // merge accepts any ICUTypeInterface but Text is different class
         $a = new Pattern('Hello');
-        $b = new \EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text(' World');
+        $b = new Text(' World');
         $merged = $a->merge($b);
-        self::assertSame('Hello World', $merged[0]->value);
+        $this->assertSame('Hello World', $merged[0]->value);
     }
 }

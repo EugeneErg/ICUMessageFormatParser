@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
@@ -21,9 +21,13 @@ use Stringable;
 final readonly class ScientificOptions implements Stringable
 {
     public function __construct(
-        /** Sign display for the exponent part only. null = default (auto). */
-        public ?Sign $exponentSign = null,
-        /** Minimum number of exponent digits (1 = default). */
+        /**
+         * Sign display for the exponent part only. null = default (auto).
+         */
+        public Sign|null $exponentSign = null,
+        /**
+         * Minimum number of exponent digits (1 = default).
+         */
         public int $minExponentDigits = 1,
     ) {
     }

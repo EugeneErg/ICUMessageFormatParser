@@ -1,12 +1,16 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects\Number;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Currency;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\DecimalSeparator;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Format;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Grouping;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\IntegerWidth;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\MeasureUnit;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NotationSimple;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NumberingSystem;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Precision;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionFraction;
@@ -16,460 +20,706 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\RoundingMode;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\ScientificOptions;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Sign;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\UnitWidth;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\StandardNotation;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class SkeletonTest extends TestCase
 {
-    private static function parse(string $skeleton): Skeleton {
-        $tokens = preg_split('/\s+/', trim($skeleton));
+    private static function parse(string $skeleton): Skeleton
+    {
+        $tokens = preg_split('/\\s+/', trim($skeleton));
+
         return Skeleton::createFromOptions(array_values(array_filter($tokens)));
     }
-    private static function assertRoundtrip(string $input, string $expected, string $msg = ''): void {
-        self::assertSame($expected, (string) self::parse($input), $msg ?: "Roundtrip: \"$input\"");
+
+    private static function assertRoundtrip(string $input, string $expected, string $msg = ''): void
+    {
+        self::assertSame($expected, (string) self::parse($input), $msg ?: "Roundtrip: \"{$input}\"");
     }
 
-    public function testDefaultSkeletonIsEmpty(): void { self::assertSame('', (string) new Skeleton()); }
+    #[Test]
+    public function defaultSkeletonIsEmpty(): void
+    {
+        $this->assertSame('', (string) new Skeleton());
+    }
 
-    public function testDefaultPrecisionForDecimalIsFraction02(): void {
+    #[Test]
+    public function defaultPrecisionForDecimalIsFraction02(): void
+    {
         $sk = new Skeleton();
-        self::assertInstanceOf(PrecisionFraction::class, $sk->precision);
+        $this->assertInstanceOf(PrecisionFraction::class, $sk->precision);
         $p = $sk->precision;
-        self::assertSame(0, $p->minFraction);
-        self::assertSame(2, $p->maxFraction);
+        $this->assertSame(0, $p->minFraction);
+        $this->assertSame(2, $p->maxFraction);
     }
 
-    /** @dataProvider formatProvider */
-    public function testFormatRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function formatProvider(): array {
+    #[DataProvider('provideFormatRoundtripCases')]
+    #[Test]
+    public function formatRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideFormatRoundtripCases(): iterable
+    {
         return [
-            'decimal (default, no output)'  => ['',              ''],
-            'integer'                        => ['integer',       'integer'],
-            'percent'                        => ['percent',       'percent'],
-            'permille'                       => ['permille',      'permille'],
-            'base-unit'                      => ['base-unit',     'base-unit'],
-            'scientific format'              => ['scientific',    '::scientific'],
-            'currency USD → short form'      => ['currency/USD',  'currency'],
-            'currency EUR'                   => ['currency/EUR',  'currency/EUR'],
-            'currency CAD'                   => ['currency/CAD',  'currency/CAD'],
-            '%x100 concise'                  => ['%x100',         '%x100'],
+            'decimal (default, no output)' => ['', ''],
+            'integer' => ['integer', 'integer'],
+            'percent' => ['percent', 'percent'],
+            'permille' => ['permille', 'permille'],
+            'base-unit' => ['base-unit', 'base-unit'],
+            'scientific format' => ['scientific', '::scientific'],
+            'currency USD → short form' => ['currency/USD', 'currency'],
+            'currency EUR' => ['currency/EUR', 'currency/EUR'],
+            'currency CAD' => ['currency/CAD', 'currency/CAD'],
+            '%x100 concise' => ['%x100', '%x100'],
         ];
     }
 
-    public function testFormatEnumValues(): void {
-        self::assertSame('', Format::Decimal->value);
-        self::assertSame('integer', Format::Integer->value);
-        self::assertSame('percent', Format::Percent->value);
-        self::assertSame('permille', Format::Permille->value);
-        self::assertSame('base-unit', Format::BaseUnit->value);
-        self::assertSame('scientific', Format::Scientific->value);
+    #[Test]
+    public function formatEnumValues(): void
+    {
+        $this->assertSame('', Format::Decimal->value);
+        $this->assertSame('integer', Format::Integer->value);
+        $this->assertSame('percent', Format::Percent->value);
+        $this->assertSame('permille', Format::Permille->value);
+        $this->assertSame('base-unit', Format::BaseUnit->value);
+        $this->assertSame('scientific', Format::Scientific->value);
     }
 
-    public function testCurrencyDefaultIsUSD(): void { $c = new Currency(); self::assertSame('USD', $c->value); }
-    public function testCurrencyWithUnitWidth(): void {
+    #[Test]
+    public function currencyDefaultIsUSD(): void
+    {
+        $c = new Currency();
+        $this->assertSame('USD', $c->value);
+    }
+
+    #[Test]
+    public function currencyWithUnitWidth(): void
+    {
         self::assertRoundtrip('currency/CAD unit-width-narrow', '::currency/CAD unit-width-narrow');
         self::assertRoundtrip('currency/EUR unit-width-iso-code', '::currency/EUR unit-width-iso-code');
         self::assertRoundtrip('currency/JPY unit-width-full-name', '::currency/JPY unit-width-full-name');
     }
-    public function testCurrencyDefaultPrecisionIsCurrencyStandard(): void {
+
+    #[Test]
+    public function currencyDefaultPrecisionIsCurrencyStandard(): void
+    {
         $sk = self::parse('currency/USD');
-        self::assertSame(Precision::CurrencyStandard, $sk->precision);
+        $this->assertSame(Precision::CurrencyStandard, $sk->precision);
     }
 
-    /** @dataProvider notationProvider */
-    public function testNotationRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function notationProvider(): array {
+    #[DataProvider('provideNotationRoundtripCases')]
+    #[Test]
+    public function notationRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideNotationRoundtripCases(): iterable
+    {
         return [
-            'standard → no output'         => ['standard',       ''],
-            'notation-simple → explicit'   => ['notation-simple','::notation-simple'],
-            'compact-short'                => ['compact-short',  '::compact-short'],
-            'compact-long'                 => ['compact-long',   '::compact-long'],
-            'scientific'                   => ['scientific',     '::scientific'],
-            'engineering'                  => ['engineering',    '::engineering'],
-            'concise K → compact-short'    => ['K',              '::compact-short'],
-            'concise KK → compact-long'    => ['KK',             '::compact-long'],
-            'concise E0 → scientific'      => ['E0',             '::scientific'],
-            'concise E00 → sci 2-digit exp'=> ['E00',            '::scientific/*ee'],
-            'concise EE0 → engineering'    => ['EE0',            '::engineering'],
+            'standard → no output' => ['standard', ''],
+            'notation-simple → explicit' => ['notation-simple', '::notation-simple'],
+            'compact-short' => ['compact-short', '::compact-short'],
+            'compact-long' => ['compact-long', '::compact-long'],
+            'scientific' => ['scientific', '::scientific'],
+            'engineering' => ['engineering', '::engineering'],
+            'concise K → compact-short' => ['K', '::compact-short'],
+            'concise KK → compact-long' => ['KK', '::compact-long'],
+            'concise E0 → scientific' => ['E0', '::scientific'],
+            'concise E00 → sci 2-digit exp' => ['E00', '::scientific/*ee'],
+            'concise EE0 → engineering' => ['EE0', '::engineering'],
         ];
     }
 
-    public function testBothStandardFormsAreDefault(): void {
+    #[Test]
+    public function bothStandardFormsAreDefault(): void
+    {
         $byStandard = self::parse('standard');
-        $bySimple   = self::parse('notation-simple');
-        self::assertInstanceOf(\EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\StandardNotation::class, $byStandard->notation);
-        self::assertInstanceOf(\EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NotationSimple::class, $bySimple->notation);
-        self::assertSame('',                  (string) $byStandard);
-        self::assertSame('::notation-simple', (string) $bySimple);
+        $bySimple = self::parse('notation-simple');
+        $this->assertInstanceOf(StandardNotation::class, $byStandard->notation);
+        $this->assertInstanceOf(NotationSimple::class, $bySimple->notation);
+        $this->assertSame('', (string) $byStandard);
+        $this->assertSame('::notation-simple', (string) $bySimple);
     }
 
-    /** @dataProvider scientificOptionsProvider */
-    public function testScientificOptionsRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function scientificOptionsProvider(): array {
+    #[DataProvider('provideScientificOptionsRoundtripCases')]
+    #[Test]
+    public function scientificOptionsRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideScientificOptionsRoundtripCases(): iterable
+    {
         return [
-            'scientific default'                   => ['scientific',                    '::scientific'],
-            'scientific sign-always'               => ['scientific/sign-always',        '::scientific/sign-always'],
-            'scientific 2-digit exp'               => ['scientific/*ee',                '::scientific/*ee'],
-            'scientific sign-always 2-digit'       => ['scientific/sign-always/*ee',    '::scientific/sign-always/*ee'],
-            'engineering sign-always'              => ['engineering/sign-always',       '::engineering/sign-always'],
-            'E+! → scientific sign-always'         => ['E+!0',                          '::scientific/sign-always'],
-            'EE+!0 → engineering sign-always'      => ['EE+!0',                         '::engineering/sign-always'],
+            'scientific default' => ['scientific', '::scientific'],
+            'scientific sign-always' => ['scientific/sign-always', '::scientific/sign-always'],
+            'scientific 2-digit exp' => ['scientific/*ee', '::scientific/*ee'],
+            'scientific sign-always 2-digit' => ['scientific/sign-always/*ee', '::scientific/sign-always/*ee'],
+            'engineering sign-always' => ['engineering/sign-always', '::engineering/sign-always'],
+            'E+! → scientific sign-always' => ['E+!0', '::scientific/sign-always'],
+            'EE+!0 → engineering sign-always' => ['EE+!0', '::engineering/sign-always'],
         ];
     }
-    public function testScientificOptionsDefaults(): void {
+
+    #[Test]
+    public function scientificOptionsDefaults(): void
+    {
         $opts = new ScientificOptions();
-        self::assertNull($opts->exponentSign);
-        self::assertSame(1, $opts->minExponentDigits);
-        self::assertSame('', (string) $opts);
+        $this->assertNull($opts->exponentSign);
+        $this->assertSame(1, $opts->minExponentDigits);
+        $this->assertSame('', (string) $opts);
     }
-    public function testScientificOptionsToString(): void {
+
+    #[Test]
+    public function scientificOptionsToString(): void
+    {
         $opts = new ScientificOptions(Sign::Always, 2);
-        self::assertSame('/sign-always/*ee', (string) $opts);
+        $this->assertSame('/sign-always/*ee', (string) $opts);
     }
 
-    /** @dataProvider signProvider */
-    public function testSignRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function signProvider(): array {
-        return [
-            'auto (default, no output)'     => ['sign-auto',                ''],
-            'always'                        => ['sign-always',              '::sign-always'],
-            'never'                         => ['sign-never',               '::sign-never'],
-            'accounting'                    => ['sign-accounting',          '::sign-accounting'],
-            'accounting-always'             => ['sign-accounting-always',   '::sign-accounting-always'],
-            'except-zero'                   => ['sign-except-zero',         '::sign-except-zero'],
-            'accounting-except-zero'        => ['sign-accounting-except-zero', '::sign-accounting-except-zero'],
-            'negative'                      => ['sign-negative',            '::sign-negative'],
-            'accounting-negative'           => ['sign-accounting-negative', '::sign-accounting-negative'],
-            '+! → always'                   => ['+!',   '::sign-always'],
-            '+_ → never'                    => ['+_',   '::sign-never'],
-            '+? → except-zero'              => ['+?',   '::sign-except-zero'],
-            '() → accounting'               => ['()',   '::sign-accounting'],
-            '()! → accounting-always'       => ['()!',  '::sign-accounting-always'],
-            '()? → accounting-except-zero'  => ['()?',  '::sign-accounting-except-zero'],
-            '()- → accounting-negative'     => ['()-',  '::sign-accounting-negative'],
-            '+- → negative'                 => ['+-',   '::sign-negative'],
-        ];
-    }
-    public function testSignEnumValues(): void {
-        self::assertSame('sign-auto', Sign::Auto->value);
-        self::assertSame('sign-always', Sign::Always->value);
-        self::assertSame('sign-never', Sign::Never->value);
-        self::assertSame('sign-accounting', Sign::Accounting->value);
-        self::assertSame('sign-accounting-always', Sign::AccountingAlways->value);
-        self::assertSame('sign-except-zero', Sign::ExceptZero->value);
-        self::assertSame('sign-accounting-except-zero', Sign::AccountingExceptZero->value);
-        self::assertSame('sign-negative', Sign::Negative->value);
-        self::assertSame('sign-accounting-negative', Sign::AccountingNegative->value);
+    #[DataProvider('provideSignRoundtripCases')]
+    #[Test]
+    public function signRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
     }
 
-    /** @dataProvider unitWidthProvider */
-    public function testUnitWidthRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function unitWidthProvider(): array {
+    public static function provideSignRoundtripCases(): iterable
+    {
         return [
-            'short (default, no output)' => ['unit-width-short',     ''],
-            'narrow'                     => ['unit-width-narrow',     '::unit-width-narrow'],
-            'full-name'                  => ['currency/USD unit-width-full-name',  '::currency/USD unit-width-full-name'],
-            'iso-code'                   => ['currency/USD unit-width-iso-code',   '::currency/USD unit-width-iso-code'],
-            'hidden'                     => ['currency/USD unit-width-hidden',     '::currency/USD unit-width-hidden'],
+            'auto (default, no output)' => ['sign-auto', ''],
+            'always' => ['sign-always', '::sign-always'],
+            'never' => ['sign-never', '::sign-never'],
+            'accounting' => ['sign-accounting', '::sign-accounting'],
+            'accounting-always' => ['sign-accounting-always', '::sign-accounting-always'],
+            'except-zero' => ['sign-except-zero', '::sign-except-zero'],
+            'accounting-except-zero' => ['sign-accounting-except-zero', '::sign-accounting-except-zero'],
+            'negative' => ['sign-negative', '::sign-negative'],
+            'accounting-negative' => ['sign-accounting-negative', '::sign-accounting-negative'],
+            '+! → always' => ['+!', '::sign-always'],
+            '+_ → never' => ['+_', '::sign-never'],
+            '+? → except-zero' => ['+?', '::sign-except-zero'],
+            '() → accounting' => ['()', '::sign-accounting'],
+            '()! → accounting-always' => ['()!', '::sign-accounting-always'],
+            '()? → accounting-except-zero' => ['()?', '::sign-accounting-except-zero'],
+            '()- → accounting-negative' => ['()-', '::sign-accounting-negative'],
+            '+- → negative' => ['+-', '::sign-negative'],
         ];
     }
 
-    /** @dataProvider namedPrecisionProvider */
-    public function testNamedPrecisionRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function namedPrecisionProvider(): array {
-        return [
-            'precision-integer'            => ['precision-integer',          '::precision-integer'],
-            'precision-unlimited'          => ['precision-unlimited',         '::precision-unlimited'],
-            'precision-currency-standard'  => ['currency/USD precision-currency-standard', 'currency'],
-            'precision-currency-cash'      => ['currency/USD precision-currency-cash', '::currency/USD precision-currency-cash'],
-        ];
-    }
-    public function testPrecisionEnumValues(): void {
-        self::assertSame('precision-integer',           Precision::Integer->value);
-        self::assertSame('precision-unlimited',         Precision::Unlimited->value);
-        self::assertSame('precision-currency-standard', Precision::CurrencyStandard->value);
-        self::assertSame('precision-currency-cash',     Precision::CurrencyCash->value);
+    #[Test]
+    public function signEnumValues(): void
+    {
+        $this->assertSame('sign-auto', Sign::Auto->value);
+        $this->assertSame('sign-always', Sign::Always->value);
+        $this->assertSame('sign-never', Sign::Never->value);
+        $this->assertSame('sign-accounting', Sign::Accounting->value);
+        $this->assertSame('sign-accounting-always', Sign::AccountingAlways->value);
+        $this->assertSame('sign-except-zero', Sign::ExceptZero->value);
+        $this->assertSame('sign-accounting-except-zero', Sign::AccountingExceptZero->value);
+        $this->assertSame('sign-negative', Sign::Negative->value);
+        $this->assertSame('sign-accounting-negative', Sign::AccountingNegative->value);
     }
 
-    /** @dataProvider fractionPrecisionProvider */
-    public function testFractionPrecisionRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function fractionPrecisionProvider(): array {
+    #[DataProvider('provideUnitWidthRoundtripCases')]
+    #[Test]
+    public function unitWidthRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideUnitWidthRoundtripCases(): iterable
+    {
         return [
-            '.00 exact'             => ['.00',      '::.00'],
-            '.0# min1 max2'         => ['.0#',      '::.0#'],
+            'short (default, no output)' => ['unit-width-short', ''],
+            'narrow' => ['unit-width-narrow', '::unit-width-narrow'],
+            'full-name' => ['currency/USD unit-width-full-name', '::currency/USD unit-width-full-name'],
+            'iso-code' => ['currency/USD unit-width-iso-code', '::currency/USD unit-width-iso-code'],
+            'hidden' => ['currency/USD unit-width-hidden', '::currency/USD unit-width-hidden'],
+        ];
+    }
+
+    #[DataProvider('provideNamedPrecisionRoundtripCases')]
+    #[Test]
+    public function namedPrecisionRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideNamedPrecisionRoundtripCases(): iterable
+    {
+        return [
+            'precision-integer' => ['precision-integer', '::precision-integer'],
+            'precision-unlimited' => ['precision-unlimited', '::precision-unlimited'],
+            'precision-currency-standard' => ['currency/USD precision-currency-standard', 'currency'],
+            'precision-currency-cash' => ['currency/USD precision-currency-cash', '::currency/USD precision-currency-cash'],
+        ];
+    }
+
+    #[Test]
+    public function precisionEnumValues(): void
+    {
+        $this->assertSame('precision-integer', Precision::Integer->value);
+        $this->assertSame('precision-unlimited', Precision::Unlimited->value);
+        $this->assertSame('precision-currency-standard', Precision::CurrencyStandard->value);
+        $this->assertSame('precision-currency-cash', Precision::CurrencyCash->value);
+    }
+
+    #[DataProvider('provideFractionPrecisionRoundtripCases')]
+    #[Test]
+    public function fractionPrecisionRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideFractionPrecisionRoundtripCases(): iterable
+    {
+        return [
+            '.00 exact' => ['.00', '::.00'],
+            '.0# min1 max2' => ['.0#', '::.0#'],
             '.## max2 (default → emits nothing for Decimal)' => ['.##', ''],
-            '.00* unlimited'        => ['.00*',     '::.00*'],
-            '.0 min1 max1'          => ['.0',       '::.0'],
-            '.'                     => ['.',        '::.'],
-            '.00/w hide-if-whole'   => ['.00/w',    '::.00/w'],
-            '.##/@@@* frac+sig'     => ['.##/@@@*', '::.##/@@@*'],
-            '.00/@## frac+sig'      => ['.00/@##',  '::.00/@##'],
+            '.00* unlimited' => ['.00*', '::.00*'],
+            '.0 min1 max1' => ['.0', '::.0'],
+            '.' => ['.', '::.'],
+            '.00/w hide-if-whole' => ['.00/w', '::.00/w'],
+            '.##/@@@* frac+sig' => ['.##/@@@*', '::.##/@@@*'],
+            '.00/@## frac+sig' => ['.00/@##', '::.00/@##'],
         ];
     }
-    public function testPrecisionFractionProperties(): void {
+
+    #[Test]
+    public function precisionFractionProperties(): void
+    {
         $p = new PrecisionFraction(minFraction: 2, maxFraction: 4);
-        self::assertSame(2, $p->minFraction); self::assertSame(4, $p->maxFraction);
-        self::assertFalse($p->trailingZeroHideIfWhole); self::assertNull($p->minSignificantDigits);
-        self::assertNull($p->maxSignificantDigits); self::assertSame('.00##', (string) $p);
-    }
-    public function testPrecisionFractionUnlimited(): void {
-        $p = new PrecisionFraction(minFraction: 2, maxFraction: null);
-        self::assertNull($p->maxFraction); self::assertSame('.00*', (string) $p);
-    }
-    public function testPrecisionFractionHideIfWhole(): void {
-        $p = new PrecisionFraction(minFraction: 2, maxFraction: 2, trailingZeroHideIfWhole: true);
-        self::assertSame('.00/w', (string) $p);
-    }
-    public function testPrecisionFractionWithSignificantDigits(): void {
-        $p = new PrecisionFraction(minFraction: 0, maxFraction: 2, minSignificantDigits: 3, maxSignificantDigits: null);
-        self::assertSame('.##/@@@*', (string) $p);
+        $this->assertSame(2, $p->minFraction);
+        $this->assertSame(4, $p->maxFraction);
+        $this->assertFalse($p->trailingZeroHideIfWhole);
+        $this->assertNull($p->minSignificantDigits);
+        $this->assertNull($p->maxSignificantDigits);
+        $this->assertSame('.00##', (string) $p);
     }
 
-    /** @dataProvider significantPrecisionProvider */
-    public function testSignificantPrecisionRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function significantPrecisionProvider(): array {
+    #[Test]
+    public function precisionFractionUnlimited(): void
+    {
+        $p = new PrecisionFraction(minFraction: 2, maxFraction: null);
+        $this->assertNull($p->maxFraction);
+        $this->assertSame('.00*', (string) $p);
+    }
+
+    #[Test]
+    public function precisionFractionHideIfWhole(): void
+    {
+        $p = new PrecisionFraction(minFraction: 2, maxFraction: 2, trailingZeroHideIfWhole: true);
+        $this->assertSame('.00/w', (string) $p);
+    }
+
+    #[Test]
+    public function precisionFractionWithSignificantDigits(): void
+    {
+        $p = new PrecisionFraction(minFraction: 0, maxFraction: 2, minSignificantDigits: 3, maxSignificantDigits: null);
+        $this->assertSame('.##/@@@*', (string) $p);
+    }
+
+    #[DataProvider('provideSignificantPrecisionRoundtripCases')]
+    #[Test]
+    public function significantPrecisionRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideSignificantPrecisionRoundtripCases(): iterable
+    {
         return [
-            '@@@  fixed 3'         => ['@@@',   '::@@@'],
-            '@##  max 3 min 1'     => ['@##',   '::@##'],
-            '@@#  min 2 max 3'     => ['@@#',   '::@@#'],
-            '@@@* unlimited'       => ['@@@*',  '::@@@*'],
-            '@    exactly 1'       => ['@',     '::@'],
-            '@@   exactly 2'       => ['@@',    '::@@'],
-            '@@@/w hide-if-whole'  => ['@@@/w', '::@@@/w'],
+            '@@@  fixed 3' => ['@@@', '::@@@'],
+            '@##  max 3 min 1' => ['@##', '::@##'],
+            '@@#  min 2 max 3' => ['@@#', '::@@#'],
+            '@@@* unlimited' => ['@@@*', '::@@@*'],
+            '@    exactly 1' => ['@', '::@'],
+            '@@   exactly 2' => ['@@', '::@@'],
+            '@@@/w hide-if-whole' => ['@@@/w', '::@@@/w'],
         ];
     }
-    public function testPrecisionSignificantProperties(): void {
+
+    #[Test]
+    public function precisionSignificantProperties(): void
+    {
         $p = new PrecisionSignificant(minDigits: 2, maxDigits: 4);
-        self::assertSame(2, $p->minDigits); self::assertSame(4, $p->maxDigits);
-        self::assertFalse($p->trailingZeroHideIfWhole); self::assertSame('@@##', (string) $p);
-    }
-    public function testPrecisionSignificantUnlimited(): void {
-        $p = new PrecisionSignificant(minDigits: 3, maxDigits: null);
-        self::assertNull($p->maxDigits); self::assertSame('@@@*', (string) $p);
-    }
-    public function testPrecisionSignificantHideIfWhole(): void {
-        $p = new PrecisionSignificant(minDigits: 3, maxDigits: 3, trailingZeroHideIfWhole: true);
-        self::assertSame('@@@/w', (string) $p);
+        $this->assertSame(2, $p->minDigits);
+        $this->assertSame(4, $p->maxDigits);
+        $this->assertFalse($p->trailingZeroHideIfWhole);
+        $this->assertSame('@@##', (string) $p);
     }
 
-    /** @dataProvider incrementPrecisionProvider */
-    public function testIncrementPrecisionRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function incrementPrecisionProvider(): array {
+    #[Test]
+    public function precisionSignificantUnlimited(): void
+    {
+        $p = new PrecisionSignificant(minDigits: 3, maxDigits: null);
+        $this->assertNull($p->maxDigits);
+        $this->assertSame('@@@*', (string) $p);
+    }
+
+    #[Test]
+    public function precisionSignificantHideIfWhole(): void
+    {
+        $p = new PrecisionSignificant(minDigits: 3, maxDigits: 3, trailingZeroHideIfWhole: true);
+        $this->assertSame('@@@/w', (string) $p);
+    }
+
+    #[DataProvider('provideIncrementPrecisionRoundtripCases')]
+    #[Test]
+    public function incrementPrecisionRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideIncrementPrecisionRoundtripCases(): iterable
+    {
         return [
-            '0.05'  => ['precision-increment/0.05',  '::precision-increment/0.05'],
-            '0.5'   => ['precision-increment/0.5',   '::precision-increment/0.5'],
-            '1'     => ['precision-increment/1',     '::precision-increment/1'],
-            '50'    => ['precision-increment/50',    '::precision-increment/50'],
+            '0.05' => ['precision-increment/0.05', '::precision-increment/0.05'],
+            '0.5' => ['precision-increment/0.5', '::precision-increment/0.5'],
+            '1' => ['precision-increment/1', '::precision-increment/1'],
+            '50' => ['precision-increment/50', '::precision-increment/50'],
             '0.001' => ['precision-increment/0.001', '::precision-increment/0.001'],
         ];
     }
-    public function testPrecisionIncrementProperties(): void {
+
+    #[Test]
+    public function precisionIncrementProperties(): void
+    {
         $p = new PrecisionIncrement(0.05);
-        self::assertEqualsWithDelta(0.05, $p->value, 0.0001);
+        $this->assertEqualsWithDelta(0.05, $p->value, 0.0001);
     }
 
-    /** @dataProvider groupingProvider */
-    public function testGroupingRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function groupingProvider(): array {
+    #[DataProvider('provideGroupingRoundtripCases')]
+    #[Test]
+    public function groupingRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideGroupingRoundtripCases(): iterable
+    {
         return [
-            'auto (default, no output)' => ['group-auto',       ''],
-            'off'                       => ['group-off',        '::group-off'],
-            'min2'                      => ['group-min2',       '::group-min2'],
-            'on-aligned'                => ['group-on-aligned', '::group-on-aligned'],
-            'thousands'                 => ['group-thousands',  '::group-thousands'],
-            ',_ → off'                  => [',_',  '::group-off'],
-            ',? → min2'                 => [',?',  '::group-min2'],
-            ',! → on-aligned'           => [',!',  '::group-on-aligned'],
+            'auto (default, no output)' => ['group-auto', ''],
+            'off' => ['group-off', '::group-off'],
+            'min2' => ['group-min2', '::group-min2'],
+            'on-aligned' => ['group-on-aligned', '::group-on-aligned'],
+            'thousands' => ['group-thousands', '::group-thousands'],
+            ',_ → off' => [',_', '::group-off'],
+            ',? → min2' => [',?', '::group-min2'],
+            ',! → on-aligned' => [',!', '::group-on-aligned'],
         ];
     }
-    public function testGroupingEnumValues(): void {
-        self::assertSame('group-off',        Grouping::Off->value);
-        self::assertSame('group-min2',       Grouping::Min2->value);
-        self::assertSame('group-auto',       Grouping::Auto->value);
-        self::assertSame('group-on-aligned', Grouping::OnAligned->value);
-        self::assertSame('group-thousands',  Grouping::Thousands->value);
+
+    #[Test]
+    public function groupingEnumValues(): void
+    {
+        $this->assertSame('group-off', Grouping::Off->value);
+        $this->assertSame('group-min2', Grouping::Min2->value);
+        $this->assertSame('group-auto', Grouping::Auto->value);
+        $this->assertSame('group-on-aligned', Grouping::OnAligned->value);
+        $this->assertSame('group-thousands', Grouping::Thousands->value);
     }
 
-    /** @dataProvider scaleProvider */
-    public function testScaleRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function scaleProvider(): array {
+    #[DataProvider('provideScaleRoundtripCases')]
+    #[Test]
+    public function scaleRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideScaleRoundtripCases(): iterable
+    {
         return [
-            'scale 100'   => ['scale/100',  '::scale/100'],
-            'scale 0.01'  => ['scale/0.01', '::scale/0.01'],
-            'scale 1000'  => ['scale/1000', '::scale/1000'],
+            'scale 100' => ['scale/100', '::scale/100'],
+            'scale 0.01' => ['scale/0.01', '::scale/0.01'],
+            'scale 1000' => ['scale/1000', '::scale/1000'],
         ];
     }
-    public function testScaleDefaultIsOne(): void { $sk = new Skeleton(); self::assertEqualsWithDelta(1.0, $sk->scale, 0.0001); }
 
-    /** @dataProvider integerWidthProvider */
-    public function testIntegerWidthRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function integerWidthProvider(): array {
+    #[Test]
+    public function scaleDefaultIsOne(): void
+    {
+        $sk = new Skeleton();
+        $this->assertEqualsWithDelta(1.0, $sk->scale, 0.0001);
+    }
+
+    #[DataProvider('provideIntegerWidthRoundtripCases')]
+    #[Test]
+    public function integerWidthRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideIntegerWidthRoundtripCases(): iterable
+    {
         return [
             'integer-width/*000 at-least-3' => ['integer-width/*000', '000'],
-            'integer-width/##0  max-3'      => ['integer-width/##0',  '::integer-width/##0'],
-            'integer-width/0    exactly-1'  => ['integer-width/0',    '::integer-width/0'],
-            'integer-width/*    unlimited'  => ['integer-width/*',    '::integer-width/*'],
-            'integer-width-trunc'           => ['integer-width-trunc','::integer-width-trunc'],
-            'concise 000 → zeros=3'         => ['000',                '000'],
+            'integer-width/##0  max-3' => ['integer-width/##0', '::integer-width/##0'],
+            'integer-width/0    exactly-1' => ['integer-width/0', '::integer-width/0'],
+            'integer-width/*    unlimited' => ['integer-width/*', '::integer-width/*'],
+            'integer-width-trunc' => ['integer-width-trunc', '::integer-width-trunc'],
+            'concise 000 → zeros=3' => ['000', '000'],
         ];
     }
-    public function testIntegerWidthProperties(): void {
+
+    #[Test]
+    public function integerWidthProperties(): void
+    {
         $iw = new IntegerWidth(zeroFillTo: 3, truncateAt: null);
-        self::assertSame(3, $iw->zeroFillTo); self::assertNull($iw->truncateAt);
-        self::assertSame('integer-width/*000', (string) $iw);
-    }
-    public function testIntegerWidthWithUpperBound(): void {
-        $iw = new IntegerWidth(zeroFillTo: 1, truncateAt: 3);
-        self::assertSame('integer-width/##0', (string) $iw);
-    }
-    public function testIntegerWidthTrunc(): void {
-        $iw = IntegerWidth::trunc();
-        self::assertSame(0, $iw->zeroFillTo); self::assertSame(0, $iw->truncateAt);
-        self::assertSame('integer-width-trunc', (string) $iw);
-    }
-    public function testIntegerWidthFromConcise(): void {
-        $iw = IntegerWidth::fromConcise(3);
-        self::assertSame(3, $iw->zeroFillTo); self::assertNull($iw->truncateAt);
+        $this->assertSame(3, $iw->zeroFillTo);
+        $this->assertNull($iw->truncateAt);
+        $this->assertSame('integer-width/*000', (string) $iw);
     }
 
-    /** @dataProvider roundingModeProvider */
-    public function testRoundingModeRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function roundingModeProvider(): array {
+    #[Test]
+    public function integerWidthWithUpperBound(): void
+    {
+        $iw = new IntegerWidth(zeroFillTo: 1, truncateAt: 3);
+        $this->assertSame('integer-width/##0', (string) $iw);
+    }
+
+    #[Test]
+    public function integerWidthTrunc(): void
+    {
+        $iw = IntegerWidth::trunc();
+        $this->assertSame(0, $iw->zeroFillTo);
+        $this->assertSame(0, $iw->truncateAt);
+        $this->assertSame('integer-width-trunc', (string) $iw);
+    }
+
+    #[Test]
+    public function integerWidthFromConcise(): void
+    {
+        $iw = IntegerWidth::fromConcise(3);
+        $this->assertSame(3, $iw->zeroFillTo);
+        $this->assertNull($iw->truncateAt);
+    }
+
+    #[DataProvider('provideRoundingModeRoundtripCases')]
+    #[Test]
+    public function roundingModeRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideRoundingModeRoundtripCases(): iterable
+    {
         return [
-            'ceiling'     => ['rounding-mode-ceiling',     '::rounding-mode-ceiling'],
-            'floor'       => ['rounding-mode-floor',       '::rounding-mode-floor'],
-            'down'        => ['rounding-mode-down',        '::rounding-mode-down'],
-            'up'          => ['rounding-mode-up',          '::rounding-mode-up'],
-            'half-even'   => ['rounding-mode-half-even',   '::rounding-mode-half-even'],
-            'half-down'   => ['rounding-mode-half-down',   '::rounding-mode-half-down'],
-            'half-up'     => ['rounding-mode-half-up',     '::rounding-mode-half-up'],
+            'ceiling' => ['rounding-mode-ceiling', '::rounding-mode-ceiling'],
+            'floor' => ['rounding-mode-floor', '::rounding-mode-floor'],
+            'down' => ['rounding-mode-down', '::rounding-mode-down'],
+            'up' => ['rounding-mode-up', '::rounding-mode-up'],
+            'half-even' => ['rounding-mode-half-even', '::rounding-mode-half-even'],
+            'half-down' => ['rounding-mode-half-down', '::rounding-mode-half-down'],
+            'half-up' => ['rounding-mode-half-up', '::rounding-mode-half-up'],
             'unnecessary' => ['rounding-mode-unnecessary', '::rounding-mode-unnecessary'],
         ];
     }
-    public function testRoundingModeEnumValues(): void {
-        self::assertSame('rounding-mode-ceiling',     RoundingMode::Ceiling->value);
-        self::assertSame('rounding-mode-floor',       RoundingMode::Floor->value);
-        self::assertSame('rounding-mode-down',        RoundingMode::Down->value);
-        self::assertSame('rounding-mode-up',          RoundingMode::Up->value);
-        self::assertSame('rounding-mode-half-even',   RoundingMode::HalfEven->value);
-        self::assertSame('rounding-mode-half-down',   RoundingMode::HalfDown->value);
-        self::assertSame('rounding-mode-half-up',     RoundingMode::HalfUp->value);
-        self::assertSame('rounding-mode-unnecessary', RoundingMode::Unnecessary->value);
+
+    #[Test]
+    public function roundingModeEnumValues(): void
+    {
+        $this->assertSame('rounding-mode-ceiling', RoundingMode::Ceiling->value);
+        $this->assertSame('rounding-mode-floor', RoundingMode::Floor->value);
+        $this->assertSame('rounding-mode-down', RoundingMode::Down->value);
+        $this->assertSame('rounding-mode-up', RoundingMode::Up->value);
+        $this->assertSame('rounding-mode-half-even', RoundingMode::HalfEven->value);
+        $this->assertSame('rounding-mode-half-down', RoundingMode::HalfDown->value);
+        $this->assertSame('rounding-mode-half-up', RoundingMode::HalfUp->value);
+        $this->assertSame('rounding-mode-unnecessary', RoundingMode::Unnecessary->value);
     }
 
-    /** @dataProvider decimalSeparatorProvider */
-    public function testDecimalSeparatorRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function decimalSeparatorProvider(): array {
-        return [
-            'auto (default, no output)' => ['decimal-auto',   ''],
-            'always'                    => ['decimal-always',  '::decimal-always'],
-        ];
-    }
-    public function testDecimalSeparatorEnumValues(): void {
-        self::assertSame('decimal-auto',   DecimalSeparator::Auto->value);
-        self::assertSame('decimal-always', DecimalSeparator::Always->value);
+    #[DataProvider('provideDecimalSeparatorRoundtripCases')]
+    #[Test]
+    public function decimalSeparatorRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
     }
 
-    /** @dataProvider numberingSystemProvider */
-    public function testNumberingSystemRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function numberingSystemProvider(): array {
+    public static function provideDecimalSeparatorRoundtripCases(): iterable
+    {
         return [
-            'latin'                => ['latin',                   '::latin'],
-            'arabic-indic (arab)'  => ['numbering-system/arab',   '::numbering-system/arab'],
-            'devanagari (deva)'    => ['numbering-system/deva',   '::numbering-system/deva'],
-            'persian (arabext)'    => ['numbering-system/arabext','::numbering-system/arabext'],
+            'auto (default, no output)' => ['decimal-auto', ''],
+            'always' => ['decimal-always', '::decimal-always'],
         ];
-    }
-    public function testNumberingSystemToString(): void {
-        self::assertSame('latin',                   (string) new NumberingSystem('latin'));
-        self::assertSame('numbering-system/arab',   (string) new NumberingSystem('arab'));
     }
 
-    /** @dataProvider measureUnitProvider */
-    public function testMeasureUnitRoundtrip(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function measureUnitProvider(): array {
+    #[Test]
+    public function decimalSeparatorEnumValues(): void
+    {
+        $this->assertSame('decimal-auto', DecimalSeparator::Auto->value);
+        $this->assertSame('decimal-always', DecimalSeparator::Always->value);
+    }
+
+    #[DataProvider('provideNumberingSystemRoundtripCases')]
+    #[Test]
+    public function numberingSystemRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideNumberingSystemRoundtripCases(): iterable
+    {
         return [
-            'length-meter'                         => ['measure-unit/length-meter',                           '::measure-unit/length-meter'],
-            'duration-second'                      => ['measure-unit/duration-second',                        '::measure-unit/duration-second'],
-            'measure-unit + per-measure-unit'      => ['measure-unit/length-meter per-measure-unit/duration-second', '::measure-unit/length-meter per-measure-unit/duration-second'],
-            'concise unit/meter'                   => ['unit/meter',                                          '::measure-unit/meter'],
+            'latin' => ['latin', '::latin'],
+            'arabic-indic (arab)' => ['numbering-system/arab', '::numbering-system/arab'],
+            'devanagari (deva)' => ['numbering-system/deva', '::numbering-system/deva'],
+            'persian (arabext)' => ['numbering-system/arabext', '::numbering-system/arabext'],
         ];
     }
-    public function testMeasureUnitProperties(): void {
+
+    #[Test]
+    public function numberingSystemToString(): void
+    {
+        $this->assertSame('latin', (string) new NumberingSystem('latin'));
+        $this->assertSame('numbering-system/arab', (string) new NumberingSystem('arab'));
+    }
+
+    #[DataProvider('provideMeasureUnitRoundtripCases')]
+    #[Test]
+    public function measureUnitRoundtrip(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideMeasureUnitRoundtripCases(): iterable
+    {
+        return [
+            'length-meter' => ['measure-unit/length-meter', '::measure-unit/length-meter'],
+            'duration-second' => ['measure-unit/duration-second', '::measure-unit/duration-second'],
+            'measure-unit + per-measure-unit' => ['measure-unit/length-meter per-measure-unit/duration-second', '::measure-unit/length-meter per-measure-unit/duration-second'],
+            'concise unit/meter' => ['unit/meter', '::measure-unit/meter'],
+        ];
+    }
+
+    #[Test]
+    public function measureUnitProperties(): void
+    {
         $mu = new MeasureUnit('length-meter', 'duration-second');
-        self::assertSame('length-meter', $mu->unit); self::assertSame('duration-second', $mu->perUnit);
-        self::assertSame('measure-unit/length-meter per-measure-unit/duration-second', (string) $mu);
-    }
-    public function testMeasureUnitWithoutPerUnit(): void {
-        $mu = new MeasureUnit('length-meter');
-        self::assertNull($mu->perUnit); self::assertSame('measure-unit/length-meter', (string) $mu);
+        $this->assertSame('length-meter', $mu->unit);
+        $this->assertSame('duration-second', $mu->perUnit);
+        $this->assertSame('measure-unit/length-meter per-measure-unit/duration-second', (string) $mu);
     }
 
-    /** @dataProvider defaultPrecisionProvider */
-    public function testDefaultPrecisionByFormat(string $skeleton, string $expectedPrecision): void {
+    #[Test]
+    public function measureUnitWithoutPerUnit(): void
+    {
+        $mu = new MeasureUnit('length-meter');
+        $this->assertNull($mu->perUnit);
+        $this->assertSame('measure-unit/length-meter', (string) $mu);
+    }
+
+    #[DataProvider('provideDefaultPrecisionByFormatCases')]
+    #[Test]
+    public function defaultPrecisionByFormat(string $skeleton, string $expectedPrecision): void
+    {
         $sk = self::parse($skeleton);
         $precision = $sk->precision;
         $precisionStr = $precision instanceof Precision ? $precision->value : (string) $precision;
-        self::assertSame($expectedPrecision, $precisionStr, "Default precision for: $skeleton");
+        $this->assertSame($expectedPrecision, $precisionStr, "Default precision for: {$skeleton}");
     }
-    public static function defaultPrecisionProvider(): array {
+
+    public static function provideDefaultPrecisionByFormatCases(): iterable
+    {
         return [
-            'decimal → .##'                          => ['',               '.##'],
-            'integer → precision-integer'            => ['integer',        Precision::Integer->value],
-            'percent → precision-integer'            => ['percent',        Precision::Integer->value],
-            'scientific → .000000'                   => ['scientific',     '.000000'],
+            'decimal → .##' => ['', '.##'],
+            'integer → precision-integer' => ['integer', Precision::Integer->value],
+            'percent → precision-integer' => ['percent', Precision::Integer->value],
+            'scientific → .000000' => ['scientific', '.000000'],
             'currency/USD → precision-currency-standard' => ['currency/USD', Precision::CurrencyStandard->value],
-            'measure-unit → .##'                     => ['measure-unit/length-meter', '.##'],
+            'measure-unit → .##' => ['measure-unit/length-meter', '.##'],
         ];
     }
 
-    /** @dataProvider combinationProvider */
-    public function testCombinations(string $input, string $expected): void { self::assertRoundtrip($input, $expected); }
-    public static function combinationProvider(): array {
+    #[DataProvider('provideCombinationsCases')]
+    #[Test]
+    public function combinations(string $input, string $expected): void
+    {
+        self::assertRoundtrip($input, $expected);
+    }
+
+    public static function provideCombinationsCases(): iterable
+    {
         return [
-            'percent + fraction'                  => ['percent .00',                         '::percent .00'],
-            'currency + sign + width'             => ['sign-always compact-short currency/GBP','::currency/GBP compact-short sign-always'],
-            'scientific + sign-always + 2-digit'  => ['scientific/sign-always/*ee',           '::scientific/sign-always/*ee'],
-            'fraction + rounding'                 => ['.00 rounding-mode-half-up',            '::.00 rounding-mode-half-up'],
-            'measure + width + fraction'          => ['measure-unit/length-meter unit-width-full-name .0#', '::measure-unit/length-meter unit-width-full-name .0#'],
-            'currency + grouping-off'             => ['currency/EUR group-off',               '::currency/EUR group-off'],
-            'scale + percent'                     => ['percent scale/100',                    '%x100'],
-            'significant + rounding-mode'         => ['@@@ rounding-mode-ceiling',            '::@@@ rounding-mode-ceiling'],
-            'integer-width + fraction'            => ['integer-width/*00 .00',               '::.00 00'],
-            'numbering-system + sign'             => ['latin sign-always',                   '::sign-always latin'],
+            'percent + fraction' => ['percent .00', '::percent .00'],
+            'currency + sign + width' => ['sign-always compact-short currency/GBP', '::currency/GBP compact-short sign-always'],
+            'scientific + sign-always + 2-digit' => ['scientific/sign-always/*ee', '::scientific/sign-always/*ee'],
+            'fraction + rounding' => ['.00 rounding-mode-half-up', '::.00 rounding-mode-half-up'],
+            'measure + width + fraction' => ['measure-unit/length-meter unit-width-full-name .0#', '::measure-unit/length-meter unit-width-full-name .0#'],
+            'currency + grouping-off' => ['currency/EUR group-off', '::currency/EUR group-off'],
+            'scale + percent' => ['percent scale/100', '%x100'],
+            'significant + rounding-mode' => ['@@@ rounding-mode-ceiling', '::@@@ rounding-mode-ceiling'],
+            'integer-width + fraction' => ['integer-width/*00 .00', '::.00 00'],
+            'numbering-system + sign' => ['latin sign-always', '::sign-always latin'],
         ];
     }
 
-    public function testTryCreateFromPatternCurrency(): void {
+    #[Test]
+    public function tryCreateFromPatternCurrency(): void
+    {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('currency'));
-        self::assertNotNull($sk); self::assertInstanceOf(Currency::class, $sk->format);
-        self::assertSame('USD', $sk->format->value);
+        $this->assertNotNull($sk);
+        $this->assertInstanceOf(Currency::class, $sk->format);
+        $this->assertSame('USD', $sk->format->value);
     }
-    public function testTryCreateFromPatternFormat(): void {
+
+    #[Test]
+    public function tryCreateFromPatternFormat(): void
+    {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('integer'));
-        self::assertNotNull($sk); self::assertSame(Format::Integer, $sk->format);
+        $this->assertNotNull($sk);
+        $this->assertSame(Format::Integer, $sk->format);
     }
-    public function testTryCreateFromPatternPercent(): void {
+
+    #[Test]
+    public function tryCreateFromPatternPercent(): void
+    {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('percent'));
-        self::assertNotNull($sk); self::assertSame(Format::Percent, $sk->format);
+        $this->assertNotNull($sk);
+        $this->assertSame(Format::Percent, $sk->format);
     }
-    public function testTryCreateFromPatternZeros(): void {
+
+    #[Test]
+    public function tryCreateFromPatternZeros(): void
+    {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('000'));
-        self::assertNotNull($sk); self::assertNotNull($sk->integerWidth);
-        self::assertSame(3, $sk->integerWidth->zeroFillTo); self::assertNull($sk->integerWidth->truncateAt);
+        $this->assertNotNull($sk);
+        $this->assertNotNull($sk->integerWidth);
+        $this->assertSame(3, $sk->integerWidth->zeroFillTo);
+        $this->assertNull($sk->integerWidth->truncateAt);
     }
-    public function testTryCreateFromPatternUnknownReturnsNull(): void {
+
+    #[Test]
+    public function tryCreateFromPatternUnknownReturnsNull(): void
+    {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('unknown-pattern'));
-        self::assertNull($sk);
+        $this->assertNull($sk);
     }
-    public function testTryCreateFromPatternPercentX100(): void {
+
+    #[Test]
+    public function tryCreateFromPatternPercentX100(): void
+    {
         $sk = Skeleton::tryCreateFromPattern(new Pattern('%x100'));
-        self::assertNotNull($sk); self::assertSame(Format::Percent, $sk->format);
-        self::assertEqualsWithDelta(100.0, $sk->scale, 0.001);
+        $this->assertNotNull($sk);
+        $this->assertSame(Format::Percent, $sk->format);
+        $this->assertEqualsWithDelta(100.0, $sk->scale, 0.001);
     }
-    public function testUnknownTokenThrows(): void {
+
+    #[Test]
+    public function unknownTokenThrows(): void
+    {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/Unknown skeleton token/');
         self::parse('totally-unknown-token-xyz');

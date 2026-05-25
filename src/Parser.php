@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser;
 
@@ -24,20 +24,36 @@ use EugeneErg\StringParser\DataTransferObjects\Result;
 use EugeneErg\StringParser\DataTransferObjects\Value;
 use LogicException;
 
+use function array_key_exists;
+use function count;
+use function in_array;
+use function is_string;
+
 readonly class Parser
 {
     public const TEXT = 'text';
+
     public const OBJECT = 'object';
+
     public const VARIABLE = 'variable';
+
     public const TYPE = 'type';
+
     public const OPTIONS = 'options';
+
     public const NESTED = 'nested';
+
     public const OPTION = 'option';
+
     public const SKELETON = 'skeleton';
+
     public const PATTERN = 'pattern';
+
     public const QUOTA = 'quota';
 
-    /** Types that support offset:N */
+    /**
+     * Types that support offset:N.
+     */
     private const OFFSET_TYPES = ['plural', 'selectordinal'];
 
     /**
@@ -74,7 +90,7 @@ readonly class Parser
         return preg_replace(['{\'}', '{[{}]+}'], ['\'\'', '\'$0\''], $text);
     }
 
-    public function typesToCases(Types $types, ?callable $makeKey = null): Cases
+    public function typesToCases(Types $types, callable|null $makeKey = null): Cases
     {
         $variants = $types->getAllVariants();
         $cases = [];
@@ -152,7 +168,7 @@ readonly class Parser
         };
     }
 
-    private function createClass(string $type, string $value, ?Result $options = null): ICUTypeInterface
+    private function createClass(string $type, string $value, Result|null $options = null): ICUTypeInterface
     {
         return $this->classes[$type]::create($value, $options === null ? [] : $this->parseOptions($options, $type));
     }
@@ -172,7 +188,7 @@ readonly class Parser
      */
     private function getSkeletonOptions(array $children): array
     {
-        return array_merge(['::'], array_map(static fn (Value $value) => $value->value, $children));
+        return array_merge(['::'], array_map(static fn(Value $value) => $value->value, $children));
     }
 
     /**
@@ -197,8 +213,9 @@ readonly class Parser
             $key = $child->children[0]->value;
 
             // offset:N as a single token, e.g. key = "offset:2"
-            if ($supportsOffset && preg_match('/\Aoffset:(\d+)\z/', $key, $m)) {
+            if ($supportsOffset && preg_match('/\\Aoffset:(\\d+)\\z/', $key, $m)) {
                 $result['offset'] = (int) $m[1];
+
                 continue;
             }
 
@@ -213,7 +230,7 @@ readonly class Parser
     }
 
     /**
-     * @param array<Value|Result> $children
+     * @param array<Result|Value> $children
      */
     private function getTemplateOptions(array $children): array
     {

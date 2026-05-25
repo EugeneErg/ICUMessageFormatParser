@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
@@ -13,7 +13,7 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 final readonly class ScientificNotation extends NumberNotation
 {
     public function __construct(
-        public ?ScientificOptions $options = null,
+        public ScientificOptions|null $options = null,
     ) {
     }
 

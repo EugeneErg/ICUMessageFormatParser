@@ -8,12 +8,17 @@
       "EugeneErg\\ICUMessageFormatParser\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "require": {
     "php": "^8.2",
-    "eugene-erg/string-parser": "^1.0",
-    "symfony/orm-pack": "*"
+    "eugene-erg/string-parser": "^1.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^12.5"
+    "phpunit/phpunit": "^12.5",
+    "friendsofphp/php-cs-fixer": "^3.95"
   }
 }

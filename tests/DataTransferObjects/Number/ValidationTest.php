@@ -1,6 +1,9 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects\Number;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Currency;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Format;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\IntegerWidth;
@@ -13,138 +16,180 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionSignifi
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\UnitWidth;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class ValidationTest extends TestCase
 {
     // --- Currency ---
-    public function testCurrencyEmptyCodeThrows(): void
+    #[Test]
+    public function currencyEmptyCodeThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new Currency('');
     }
 
     // --- MeasureUnit ---
-    public function testMeasureUnitEmptyUnitThrows(): void
+    #[Test]
+    public function measureUnitEmptyUnitThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new MeasureUnit('');
     }
-    public function testMeasureUnitEmptyPerUnitThrows(): void
+
+    #[Test]
+    public function measureUnitEmptyPerUnitThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new MeasureUnit('length-meter', '');
     }
 
     // --- NumberingSystem ---
-    public function testNumberingSystemEmptyNameThrows(): void
+    #[Test]
+    public function numberingSystemEmptyNameThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new NumberingSystem('');
     }
 
     // --- IntegerWidth ---
-    public function testIntegerWidthNegativeZeroFillThrows(): void
+    #[Test]
+    public function integerWidthNegativeZeroFillThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new IntegerWidth(-1);
     }
-    public function testIntegerWidthTruncateLessThanFillThrows(): void
+
+    #[Test]
+    public function integerWidthTruncateLessThanFillThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new IntegerWidth(5, 3);
     }
-    public function testIntegerWidthTruncAndFillBothZeroIsValid(): void
+
+    #[Test]
+    public function integerWidthTruncAndFillBothZeroIsValid(): void
     {
         $iw = new IntegerWidth(0, 0); // trunc form
-        self::assertSame('integer-width-trunc', (string) $iw);
+        $this->assertSame('integer-width-trunc', (string) $iw);
     }
 
     // --- PrecisionFraction ---
-    public function testPrecisionFractionNegativeMinThrows(): void
+    #[Test]
+    public function precisionFractionNegativeMinThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionFraction(-1);
     }
-    public function testPrecisionFractionMaxLessThanMinThrows(): void
+
+    #[Test]
+    public function precisionFractionMaxLessThanMinThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionFraction(3, 1);
     }
-    public function testPrecisionFractionMinSigLessThan1Throws(): void
+
+    #[Test]
+    public function precisionFractionMinSigLessThan1Throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionFraction(0, 2, false, 0);
     }
-    public function testPrecisionFractionMaxSigLessThanMinSigThrows(): void
+
+    #[Test]
+    public function precisionFractionMaxSigLessThanMinSigThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionFraction(0, 2, false, 3, 1);
     }
-    public function testPrecisionFractionInvalidModeThrows(): void
+
+    #[Test]
+    public function precisionFractionInvalidModeThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionFraction(0, 2, false, 2, 4, 'x');
     }
 
     // --- PrecisionSignificant ---
-    public function testPrecisionSignificantMinLessThan1Throws(): void
+    #[Test]
+    public function precisionSignificantMinLessThan1Throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionSignificant(0);
     }
-    public function testPrecisionSignificantMaxLessThanMinThrows(): void
+
+    #[Test]
+    public function precisionSignificantMaxLessThanMinThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionSignificant(4, 2);
     }
 
     // --- PrecisionIncrement ---
-    public function testPrecisionIncrementZeroThrows(): void
+    #[Test]
+    public function precisionIncrementZeroThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionIncrement(0.0);
     }
-    public function testPrecisionIncrementNegativeThrows(): void
+
+    #[Test]
+    public function precisionIncrementNegativeThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new PrecisionIncrement(-1.0);
     }
 
     // --- Skeleton ---
-    public function testSkeletonScaleZeroThrows(): void
+    #[Test]
+    public function skeletonScaleZeroThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new Skeleton(scale: 0.0);
     }
-    public function testSkeletonIsoCodeWithoutCurrencyThrows(): void
+
+    #[Test]
+    public function skeletonIsoCodeWithoutCurrencyThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new Skeleton(format: Format::Decimal, unitWidth: UnitWidth::IsoCode);
     }
-    public function testSkeletonHiddenWithoutCurrencyThrows(): void
+
+    #[Test]
+    public function skeletonHiddenWithoutCurrencyThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new Skeleton(format: Format::Decimal, unitWidth: UnitWidth::Hidden);
     }
-    public function testSkeletonFullNameWithDecimalThrows(): void
+
+    #[Test]
+    public function skeletonFullNameWithDecimalThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new Skeleton(format: Format::Decimal, unitWidth: UnitWidth::FullName);
     }
-    public function testSkeletonFullNameWithMeasureUnitIsValid(): void
+
+    #[Test]
+    public function skeletonFullNameWithMeasureUnitIsValid(): void
     {
         $sk = new Skeleton(format: new MeasureUnit('length-meter'), unitWidth: UnitWidth::FullName);
-        self::assertSame(UnitWidth::FullName, $sk->unitWidth);
+        $this->assertSame(UnitWidth::FullName, $sk->unitWidth);
     }
-    public function testSkeletonCurrencyPrecisionWithDecimalThrows(): void
+
+    #[Test]
+    public function skeletonCurrencyPrecisionWithDecimalThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
         new Skeleton(format: Format::Decimal, precision: Precision::CurrencyStandard);
     }
-    public function testSkeletonCurrencyPrecisionWithCurrencyIsValid(): void
+
+    #[Test]
+    public function skeletonCurrencyPrecisionWithCurrencyIsValid(): void
     {
         $sk = new Skeleton(format: new Currency('USD'), precision: Precision::CurrencyStandard);
-        self::assertSame(Precision::CurrencyStandard, $sk->precision);
+        $this->assertSame(Precision::CurrencyStandard, $sk->precision);
     }
 }

@@ -1,10 +1,12 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
 use LogicException;
+
+use function is_int;
 
 final readonly class SelectOrdinal extends AbstractSelect
 {
@@ -15,15 +17,28 @@ final readonly class SelectOrdinal extends AbstractSelect
     public function __construct(
         string $value,
         public Types $other,
-        public ?Types $zero = null,
-        public ?Types $one = null,
-        public ?Types $two = null,
-        public ?Types $few = null,
-        public ?Types $many = null,
+        public Types|null $zero = null,
+        public Types|null $one = null,
+        public Types|null $two = null,
+        public Types|null $few = null,
+        public Types|null $many = null,
         public array $numbers = [],
         public int $offset = 0,
     ) {
         parent::__construct($value);
+    }
+
+    public function __toString(): string
+    {
+        $options = [];
+
+        foreach ($this->getOptions() as $key => $value) {
+            $options[] = $key . ' {' . $value->replaceVariableName($this->value, '#') . '}';
+        }
+
+        $offset = $this->offset !== 0 ? ' offset:' . $this->offset : '';
+
+        return '{' . $this->value . ', selectordinal,' . $offset . ' ' . implode(' ', $options) . '}';
     }
 
     public static function getName(): string
@@ -49,7 +64,7 @@ final readonly class SelectOrdinal extends AbstractSelect
         }
 
         foreach ($options as $key => $option) {
-            if (!preg_match('/\A=\d+\z/', $key)) {
+            if (!preg_match('/\\A=\\d+\\z/', $key)) {
                 throw new LogicException('Invalid option "' . $key . '"');
             }
 
@@ -57,19 +72,6 @@ final readonly class SelectOrdinal extends AbstractSelect
         }
 
         return new self($value, ...$arguments);
-    }
-
-    public function __toString(): string
-    {
-        $options = [];
-
-        foreach ($this->getOptions() as $key => $value) {
-            $options[] = $key . ' {' . $value->replaceVariableName($this->value, '#') . '}';
-        }
-
-        $offset = $this->offset !== 0 ? ' offset:' . $this->offset : '';
-
-        return '{' . $this->value . ', selectordinal,' . $offset . ' ' . implode(' ', $options) . '}';
     }
 
     public function replaceRecursive(array $replace): self
@@ -82,7 +84,7 @@ final readonly class SelectOrdinal extends AbstractSelect
             two: $this->two?->replaceRecursive($replace),
             few: $this->few?->replaceRecursive($replace),
             many: $this->many?->replaceRecursive($replace),
-            numbers: array_map(static fn (Types $types) => $types->replaceRecursive($replace), $this->numbers),
+            numbers: array_map(static fn(Types $types) => $types->replaceRecursive($replace), $this->numbers),
             offset: $this->offset,
         );
     }

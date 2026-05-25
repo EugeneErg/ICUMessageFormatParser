@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
@@ -16,12 +16,12 @@ enum Sign: string
     case Negative = 'sign-negative';
     case AccountingNegative = 'sign-accounting-negative';
 
-    public static function tryFromShortOrLong(string $value): ?self
+    public static function tryFromShortOrLong(string $value): self|null
     {
         return self::tryFrom($value) ?? self::tryFromShort($value);
     }
 
-    private static function tryFromShort(string $value): ?self
+    private static function tryFromShort(string $value): self|null
     {
         foreach (self::cases() as $case) {
             if ($case->shortValue() === $value) {

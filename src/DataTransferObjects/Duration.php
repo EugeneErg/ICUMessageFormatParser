@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
@@ -13,14 +13,14 @@ final readonly class Duration implements ICUTypeInterface, ICUTypeVariableInterf
     {
     }
 
-    public static function create(string $value, array $options = []): self
-    {
-        return new self($value);
-    }
-
     public function __toString(): string
     {
         return '{' . $this->value . ', duration}';
+    }
+
+    public static function create(string $value, array $options = []): self
+    {
+        return new self($value);
     }
 
     public function getAllVariants(array $cases = []): array

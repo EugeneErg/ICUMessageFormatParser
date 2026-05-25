@@ -1,57 +1,84 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class VariantTest extends TestCase
 {
-    public function testDefaultTypes(): void {
+    #[Test]
+    public function defaultTypes(): void
+    {
         $v = new Variant();
-        self::assertSame('', (string) $v->types);
-        self::assertSame([], $v->cases);
+        $this->assertSame('', (string) $v->types);
+        $this->assertSame([], $v->cases);
     }
-    public function testMergeEmptyVariants(): void {
+
+    #[Test]
+    public function mergeEmptyVariants(): void
+    {
         $a = new Variant(new Types([new Pattern('Hello')]));
         $b = new Variant(new Types([new Pattern(' World')]));
         $merged = $a->merge($b);
-        self::assertNotNull($merged);
-        self::assertSame('Hello World', (string) $merged->types);
+        $this->assertNotNull($merged);
+        $this->assertSame('Hello World', (string) $merged->types);
     }
-    public function testMergeAdjacentSameTypesMerge(): void {
+
+    #[Test]
+    public function mergeAdjacentSameTypesMerge(): void
+    {
         // Two Pattern nodes should merge into one
         $a = new Variant(new Types([new Pattern('A')]));
         $b = new Variant(new Types([new Pattern('B')]));
         $m = $a->merge($b);
-        self::assertCount(1, $m->types->types); // merged into single Pattern
-        self::assertSame('AB', (string) $m->types);
+        $this->assertCount(1, $m->types->types); // merged into single Pattern
+        $this->assertSame('AB', (string) $m->types);
     }
-    public function testMergeDifferentTypesNoMerge(): void {
+
+    #[Test]
+    public function mergeDifferentTypesNoMerge(): void
+    {
         $a = new Variant(new Types([new Pattern('A')]));
         $b = new Variant(new Types([new Text('B')]));
         $m = $a->merge($b);
-        self::assertNotNull($m);
-        self::assertCount(2, $m->types->types);
+        $this->assertNotNull($m);
+        $this->assertCount(2, $m->types->types);
     }
-    public function testMergeWithCompatibleCases(): void {
+
+    #[Test]
+    public function mergeWithCompatibleCases(): void
+    {
         $a = new Variant(cases: ['select' => ['gender' => 'male']]);
         $b = new Variant();
         $m = $a->merge($b);
-        self::assertNotNull($m);
-        self::assertSame('male', $m->cases['select']['gender']);
+        $this->assertNotNull($m);
+        $this->assertSame('male', $m->cases['select']['gender']);
     }
-    public function testMergeWithIncompatibleCasesReturnsNull(): void {
+
+    #[Test]
+    public function mergeWithIncompatibleCasesReturnsNull(): void
+    {
         $a = new Variant(cases: ['select' => ['gender' => 'male']]);
         $b = new Variant(cases: ['select' => ['gender' => 'female']]);
-        self::assertNull($a->merge($b));
+        $this->assertNull($a->merge($b));
     }
-    public function testMergeWithLeftEmpty(): void {
+
+    #[Test]
+    public function mergeWithLeftEmpty(): void
+    {
         $a = new Variant(new Types([]));
         $b = new Variant(new Types([new Pattern('X')]));
         $m = $a->merge($b);
-        self::assertSame('X', (string) $m->types);
+        $this->assertSame('X', (string) $m->types);
     }
 }

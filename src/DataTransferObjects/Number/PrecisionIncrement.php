@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number;
 
@@ -13,7 +13,7 @@ final readonly class PrecisionIncrement implements Stringable
     {
         if ($value <= 0) {
             throw new InvalidArgumentException(
-                "PrecisionIncrement: value must be > 0, got $value."
+                "PrecisionIncrement: value must be > 0, got {$value}.",
             );
         }
     }

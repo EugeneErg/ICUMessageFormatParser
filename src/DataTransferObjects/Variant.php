@@ -1,10 +1,14 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeMergeInterface;
+
+use function count;
+use function in_array;
+use function is_string;
 
 final readonly class Variant
 {
@@ -14,13 +18,13 @@ final readonly class Variant
      * @param array<class-string<AbstractSelect>, array<string, string|string[]>> $cases
      */
     public function __construct(
-        ?Types $types = null,
+        Types|null $types = null,
         public array $cases = [],
     ) {
         $this->types = $types ?? new Types();
     }
 
-    public function merge(self $variant): ?self
+    public function merge(self $variant): self|null
     {
         $cases = $this->mergeCases($variant->cases);
 
@@ -50,7 +54,7 @@ final readonly class Variant
         );
     }
 
-    private function mergeCases(array $cases): ?array
+    private function mergeCases(array $cases): array|null
     {
         foreach ($this->cases as $class => $values) {
             if (!isset($cases[$class])) {
@@ -74,13 +78,13 @@ final readonly class Variant
                         return null;
                     }
                 } elseif ($caseAIsString) {
-                    if (in_array($value, $cases[$class][$name])) {
+                    if (in_array($value, $cases[$class][$name], true)) {
                         return null;
                     }
 
                     $cases[$class][$name] = $value;
                 } elseif ($caseBIsString) {
-                    if (in_array($cases[$class][$name], $value)) {
+                    if (in_array($cases[$class][$name], $value, true)) {
                         return null;
                     }
                 } else {

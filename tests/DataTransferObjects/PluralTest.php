@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Tests\DataTransferObjects;
 
@@ -8,168 +8,194 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Plural;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
+use LogicException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class PluralTest extends TestCase
 {
-    private function makePlural(): Plural
+    #[Test]
+    public function getName(): void
     {
-        return Plural::create('count', [
-            'one'   => [new Pattern('1 item')],
-            'other' => [new Variable('#'), new Pattern(' items')],
-        ]);
+        $this->assertSame('plural', Plural::getName());
     }
 
-    public function testGetName(): void { self::assertSame('plural', Plural::getName()); }
-
-    public function testToStringContainsPlural(): void
+    #[Test]
+    public function toStringContainsPlural(): void
     {
         $str = (string) $this->makePlural();
-        self::assertStringContainsString('{count, plural,', $str);
-        self::assertStringContainsString('one {1 item}', $str);
-        self::assertStringContainsString('other {# items}', $str);
+        $this->assertStringContainsString('{count, plural,', $str);
+        $this->assertStringContainsString('one {1 item}', $str);
+        $this->assertStringContainsString('other {# items}', $str);
     }
 
-    public function testHashVariableReplacedWithVariableName(): void
+    #[Test]
+    public function hashVariableReplacedWithVariableName(): void
     {
         // # inside plural body is replaced with variable name on create
         $p = Plural::create('count', [
-            'one'   => [new Pattern('# thing')],
+            'one' => [new Pattern('# thing')],
             'other' => [new Pattern('# things')],
         ]);
         // The # in patterns stays as-is (it's a Pattern, not a Variable)
-        self::assertStringContainsString('# thing', (string) $p);
+        $this->assertStringContainsString('# thing', (string) $p);
     }
 
-    public function testNumericCases(): void
+    #[Test]
+    public function numericCases(): void
     {
         $p = Plural::create('n', [
-            '=0'    => [new Pattern('none')],
-            '=1'    => [new Pattern('one')],
+            '=0' => [new Pattern('none')],
+            '=1' => [new Pattern('one')],
             'other' => [new Pattern('many')],
         ]);
         $str = (string) $p;
-        self::assertStringContainsString('=0 {none}', $str);
-        self::assertStringContainsString('=1 {one}', $str);
+        $this->assertStringContainsString('=0 {none}', $str);
+        $this->assertStringContainsString('=1 {one}', $str);
     }
 
-    public function testGetAllVariantsCount(): void
+    #[Test]
+    public function getAllVariantsCount(): void
     {
         $variants = $this->makePlural()->getAllVariants();
         // one + other(null) = 2
-        self::assertCount(2, $variants);
+        $this->assertCount(2, $variants);
     }
 
-    public function testGetAllVariables(): void
+    #[Test]
+    public function getAllVariables(): void
     {
         // count and # (which is replaced by count's variable)
         $vars = $this->makePlural()->getAllVariables();
-        self::assertContains('count', $vars);
+        $this->assertContains('count', $vars);
     }
 
-    public function testInvalidOptionKeyThrows(): void
+    #[Test]
+    public function invalidOptionKeyThrows(): void
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(LogicException::class);
         Plural::create('n', ['invalid_key' => [new Pattern('x')], 'other' => [new Pattern('y')]]);
     }
 
-    public function testAllNamedCases(): void
+    #[Test]
+    public function allNamedCases(): void
     {
         $p = Plural::create('n', [
-            'zero'  => [new Pattern('zero')],
-            'one'   => [new Pattern('one')],
-            'two'   => [new Pattern('two')],
-            'few'   => [new Pattern('few')],
-            'many'  => [new Pattern('many')],
+            'zero' => [new Pattern('zero')],
+            'one' => [new Pattern('one')],
+            'two' => [new Pattern('two')],
+            'few' => [new Pattern('few')],
+            'many' => [new Pattern('many')],
             'other' => [new Pattern('other')],
         ]);
         $str = (string) $p;
-        foreach (['zero','one','two','few','many','other'] as $key) {
-            self::assertStringContainsString($key . ' {' . $key . '}', $str);
+
+        foreach (['zero', 'one', 'two', 'few', 'many', 'other'] as $key) {
+            $this->assertStringContainsString($key . ' {' . $key . '}', $str);
         }
     }
 
-    public function testReplaceRecursive(): void
+    #[Test]
+    public function replaceRecursive(): void
     {
         $p = $this->makePlural();
         $replaced = $p->replaceRecursive([]);
-        self::assertInstanceOf(Plural::class, $replaced);
+        $this->assertInstanceOf(Plural::class, $replaced);
     }
 
-    public function testVariantContainsPluralCaseInfo(): void
+    #[Test]
+    public function variantContainsPluralCaseInfo(): void
     {
         $variants = $this->makePlural()->getAllVariants();
-        $oneVariant = array_filter($variants, fn ($v) => ($v->cases['plural']['count'] ?? null) === 'one');
-        self::assertCount(1, $oneVariant);
+        $oneVariant = array_filter($variants, static fn($v) => ($v->cases['plural']['count'] ?? null) === 'one');
+        $this->assertCount(1, $oneVariant);
     }
 
     // -----------------------------------------------------------------------
     // offset support
     // -----------------------------------------------------------------------
 
-    public function testOffsetDefaultIsZero(): void
+    #[Test]
+    public function offsetDefaultIsZero(): void
     {
         $p = Plural::create('n', ['one' => [new Pattern('item')], 'other' => [new Pattern('items')]]);
-        self::assertSame(0, $p->offset);
+        $this->assertSame(0, $p->offset);
     }
 
-    public function testOffsetStoredCorrectly(): void
+    #[Test]
+    public function offsetStoredCorrectly(): void
     {
         $p = Plural::create('n', ['offset' => 2, 'one' => [new Pattern('# other')], 'other' => [new Pattern('# others')]]);
-        self::assertSame(2, $p->offset);
+        $this->assertSame(2, $p->offset);
     }
 
-    public function testOffsetSerialisation(): void
+    #[Test]
+    public function offsetSerialisation(): void
     {
         $p = Plural::create('n', [
             'offset' => 2,
-            '=2'     => [new Pattern('just you two')],
-            'one'    => [new Pattern('you and # other')],
-            'other'  => [new Pattern('you and # others')],
+            '=2' => [new Pattern('just you two')],
+            'one' => [new Pattern('you and # other')],
+            'other' => [new Pattern('you and # others')],
         ]);
         $str = (string) $p;
-        self::assertStringContainsString('offset:2', $str);
-        self::assertStringContainsString('=2 {just you two}', $str);
-        self::assertStringContainsString('one {you and # other}', $str);
-        self::assertStringContainsString('other {you and # others}', $str);
-        self::assertMatchesRegularExpression('/\{n, plural, offset:2 /', $str);
+        $this->assertStringContainsString('offset:2', $str);
+        $this->assertStringContainsString('=2 {just you two}', $str);
+        $this->assertStringContainsString('one {you and # other}', $str);
+        $this->assertStringContainsString('other {you and # others}', $str);
+        $this->assertMatchesRegularExpression('/\\{n, plural, offset:2 /', $str);
     }
 
-    public function testOffsetZeroNotSerialisedExplicitly(): void
+    #[Test]
+    public function offsetZeroNotSerialisedExplicitly(): void
     {
         $p = Plural::create('n', ['other' => [new Pattern('items')]]);
-        self::assertStringNotContainsString('offset:', (string) $p);
+        $this->assertStringNotContainsString('offset:', (string) $p);
     }
 
-    public function testOffsetPreservedInReplaceRecursive(): void
+    #[Test]
+    public function offsetPreservedInReplaceRecursive(): void
     {
-        $p        = Plural::create('n', ['offset' => 3, 'other' => [new Pattern('many')]]);
+        $p = Plural::create('n', ['offset' => 3, 'other' => [new Pattern('many')]]);
         $replaced = $p->replaceRecursive([]);
-        self::assertSame(3, $replaced->offset);
+        $this->assertSame(3, $replaced->offset);
     }
 
-    public function testOffsetWithNumericExactMatch(): void
+    #[Test]
+    public function offsetWithNumericExactMatch(): void
     {
         $p = Plural::create('n', [
             'offset' => 1,
-            '=1'     => [new Pattern('only you')],
-            'one'    => [new Pattern('you and # other')],
-            'other'  => [new Pattern('you and # others')],
+            '=1' => [new Pattern('only you')],
+            'one' => [new Pattern('you and # other')],
+            'other' => [new Pattern('you and # others')],
         ]);
         $str = (string) $p;
-        self::assertStringContainsString('=1 {only you}', $str);
-        self::assertStringContainsString('offset:1', $str);
+        $this->assertStringContainsString('=1 {only you}', $str);
+        $this->assertStringContainsString('offset:1', $str);
     }
 
-    public function testPluralDirectConstructorWithOffset(): void
+    #[Test]
+    public function pluralDirectConstructorWithOffset(): void
     {
         $p = new Plural(
-            value:  'count',
-            other:  new Types([new Pattern('# others')]),
-            one:    new Types([new Pattern('# other')]),
+            value: 'count',
+            other: new Types([new Pattern('# others')]),
+            one: new Types([new Pattern('# other')]),
             offset: 5,
         );
-        self::assertSame(5, $p->offset);
-        self::assertStringContainsString('offset:5', (string) $p);
+        $this->assertSame(5, $p->offset);
+        $this->assertStringContainsString('offset:5', (string) $p);
+    }
+
+    private function makePlural(): Plural
+    {
+        return Plural::create('count', [
+            'one' => [new Pattern('1 item')],
+            'other' => [new Variable('#'), new Pattern(' items')],
+        ]);
     }
 }

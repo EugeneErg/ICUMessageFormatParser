@@ -1,13 +1,26 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeVariableInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
+
+use function count;
+
 final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterface
 {
     public function __construct(public string $value, public Skeleton|Message $options)
     {
+    }
+
+    public function __toString(): string
+    {
+        $options = (string) $this->options;
+
+        return '{' . $this->value . ', number' . ($options === '' ? '' : ', ' . $options) . '}';
     }
 
     public static function create(string $value, array $options = []): self
@@ -16,26 +29,29 @@ final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterfac
     }
 
     /**
-     * @param array<Pattern|Text|string> $options
+     * @param array<Pattern|string|Text> $options
      */
     private static function makeOptions(array $options): Skeleton|Message
     {
-        if ($options === []) return new Skeleton();
+        if ($options === []) {
+            return new Skeleton();
+        }
+
         if ($options[0] === '::') {
             unset($options[0]);
+
             return Skeleton::createFromOptions($options);
         }
+
         if (count($options) === 1 && $options[0] instanceof Pattern) {
             $skeleton = Skeleton::tryCreateFromPattern($options[0]);
-            if ($skeleton !== null) return $skeleton;
-        }
-        return new Message(...$options);
-    }
 
-    public function __toString(): string
-    {
-        $options = (string)$this->options;
-        return '{' . $this->value . ', number' . ($options === '' ? '' : ', ' . $options) . '}';
+            if ($skeleton !== null) {
+                return $skeleton;
+            }
+        }
+
+        return new Message(...$options);
     }
 
     public function getAllVariants(array $cases = []): array

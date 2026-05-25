@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
@@ -13,17 +13,20 @@ abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVaria
     {
     }
 
-    abstract public static function getName(): string;
+    /**
+     * @param Types[] $replace
+     */
+    abstract public function replaceRecursive(array $replace): self;
+
+    /**
+     * @return Types[]
+     */
+    abstract protected function getOptions(): array;
 
     public function getValue(): string
     {
         return $this->value;
     }
-
-    /**
-     * @param ICUTypeInterface[][] $options
-     */
-    abstract public static function create(string $value, array $options = []): self;
 
     public function getAllVariants(array $cases = []): array
     {
@@ -60,13 +63,10 @@ abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVaria
         return array_unique(array_merge(...$result));
     }
 
-    /**
-     * @param Types[] $replace
-     */
-    abstract public function replaceRecursive(array $replace): self;
+    abstract public static function getName(): string;
 
     /**
-     * @return Types[]
+     * @param ICUTypeInterface[][] $options
      */
-    abstract protected function getOptions(): array;
+    abstract public static function create(string $value, array $options = []): self;
 }

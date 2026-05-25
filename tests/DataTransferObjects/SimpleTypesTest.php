@@ -1,31 +1,110 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects;
+
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Duration;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Ordinal;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\SpellOut;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class SimpleTypesTest extends TestCase
 {
     // SpellOut
-    public function testSpellOutToString(): void { self::assertSame('{amount, spellout}', (string) new SpellOut('amount')); }
-    public function testSpellOutGetValue(): void { self::assertSame('n', (new SpellOut('n'))->getValue()); }
-    public function testSpellOutGetAllVariables(): void { self::assertSame(['n'], (new SpellOut('n'))->getAllVariables()); }
-    public function testSpellOutGetAllVariants(): void { self::assertCount(1, (new SpellOut('n'))->getAllVariants()); }
-    public function testSpellOutCreate(): void { self::assertSame('x', SpellOut::create('x')->value); }
+    #[Test]
+    public function spellOutToString(): void
+    {
+        $this->assertSame('{amount, spellout}', (string) new SpellOut('amount'));
+    }
+
+    #[Test]
+    public function spellOutGetValue(): void
+    {
+        $this->assertSame('n', (new SpellOut('n'))->getValue());
+    }
+
+    #[Test]
+    public function spellOutGetAllVariables(): void
+    {
+        $this->assertSame(['n'], (new SpellOut('n'))->getAllVariables());
+    }
+
+    #[Test]
+    public function spellOutGetAllVariants(): void
+    {
+        $this->assertCount(1, (new SpellOut('n'))->getAllVariants());
+    }
+
+    #[Test]
+    public function spellOutCreate(): void
+    {
+        $this->assertSame('x', SpellOut::create('x')->value);
+    }
 
     // Duration
-    public function testDurationToString(): void { self::assertSame('{elapsed, duration}', (string) new Duration('elapsed')); }
-    public function testDurationGetValue(): void { self::assertSame('t', (new Duration('t'))->getValue()); }
-    public function testDurationGetAllVariables(): void { self::assertSame(['t'], (new Duration('t'))->getAllVariables()); }
-    public function testDurationGetAllVariants(): void { self::assertCount(1, (new Duration('t'))->getAllVariants()); }
-    public function testDurationCreate(): void { self::assertSame('x', Duration::create('x')->value); }
+    #[Test]
+    public function durationToString(): void
+    {
+        $this->assertSame('{elapsed, duration}', (string) new Duration('elapsed'));
+    }
+
+    #[Test]
+    public function durationGetValue(): void
+    {
+        $this->assertSame('t', (new Duration('t'))->getValue());
+    }
+
+    #[Test]
+    public function durationGetAllVariables(): void
+    {
+        $this->assertSame(['t'], (new Duration('t'))->getAllVariables());
+    }
+
+    #[Test]
+    public function durationGetAllVariants(): void
+    {
+        $this->assertCount(1, (new Duration('t'))->getAllVariants());
+    }
+
+    #[Test]
+    public function durationCreate(): void
+    {
+        $this->assertSame('x', Duration::create('x')->value);
+    }
 
     // Ordinal
-    public function testOrdinalToString(): void { self::assertSame('{rank, ordinal}', (string) new Ordinal('rank')); }
-    public function testOrdinalGetValue(): void { self::assertSame('n', (new Ordinal('n'))->getValue()); }
-    public function testOrdinalGetAllVariables(): void { self::assertSame(['n'], (new Ordinal('n'))->getAllVariables()); }
-    public function testOrdinalGetAllVariants(): void { self::assertCount(1, (new Ordinal('n'))->getAllVariants()); }
-    public function testOrdinalCreate(): void { self::assertSame('x', Ordinal::create('x')->value); }
+    #[Test]
+    public function ordinalToString(): void
+    {
+        $this->assertSame('{rank, ordinal}', (string) new Ordinal('rank'));
+    }
+
+    #[Test]
+    public function ordinalGetValue(): void
+    {
+        $this->assertSame('n', (new Ordinal('n'))->getValue());
+    }
+
+    #[Test]
+    public function ordinalGetAllVariables(): void
+    {
+        $this->assertSame(['n'], (new Ordinal('n'))->getAllVariables());
+    }
+
+    #[Test]
+    public function ordinalGetAllVariants(): void
+    {
+        $this->assertCount(1, (new Ordinal('n'))->getAllVariants());
+    }
+
+    #[Test]
+    public function ordinalCreate(): void
+    {
+        $this->assertSame('x', Ordinal::create('x')->value);
+    }
 }

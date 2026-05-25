@@ -1,81 +1,91 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Tests\DataTransferObjects;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Select;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class SelectTest extends TestCase
 {
-    private function makeSelect(): Select
+    #[Test]
+    public function getName(): void
     {
-        return Select::create('gender', [
-            'male'   => [new Pattern('He')],
-            'female' => [new Pattern('She')],
-            'other'  => [new Pattern('They')],
-        ]);
+        $this->assertSame('select', Select::getName());
     }
 
-    public function testGetName(): void
-    {
-        self::assertSame('select', Select::getName());
-    }
-
-    public function testToString(): void
+    #[Test]
+    public function toString(): void
     {
         $s = $this->makeSelect();
         $str = (string) $s;
-        self::assertStringContainsString('{gender, select,', $str);
-        self::assertStringContainsString('male {He}', $str);
-        self::assertStringContainsString('female {She}', $str);
-        self::assertStringContainsString('other {They}', $str);
+        $this->assertStringContainsString('{gender, select,', $str);
+        $this->assertStringContainsString('male {He}', $str);
+        $this->assertStringContainsString('female {She}', $str);
+        $this->assertStringContainsString('other {They}', $str);
     }
 
-    public function testGetValue(): void
+    #[Test]
+    public function getValue(): void
     {
-        self::assertSame('gender', $this->makeSelect()->getValue());
+        $this->assertSame('gender', $this->makeSelect()->getValue());
     }
 
-    public function testGetAllVariables(): void
+    #[Test]
+    public function getAllVariables(): void
     {
         $vars = $this->makeSelect()->getAllVariables();
         // No sub-variables in this simple case (only Pattern nodes)
-        self::assertIsArray($vars);
+        $this->assertIsArray($vars);
     }
 
-    public function testGetAllVariantsProducesCorrectCount(): void
+    #[Test]
+    public function getAllVariantsProducesCorrectCount(): void
     {
         $s = $this->makeSelect();
         $variants = $s->getAllVariants();
         // male, female, other(null) = 3 variants
-        self::assertCount(3, $variants);
+        $this->assertCount(3, $variants);
     }
 
-    public function testGetAllVariantsCasesContainSelectKey(): void
+    #[Test]
+    public function getAllVariantsCasesContainSelectKey(): void
     {
         $variants = $this->makeSelect()->getAllVariants();
-        $maleVariant = array_filter($variants, fn ($v) => ($v->cases['select']['gender'] ?? null) === 'male');
-        self::assertCount(1, $maleVariant);
+        $maleVariant = array_filter($variants, static fn($v) => ($v->cases['select']['gender'] ?? null) === 'male');
+        $this->assertCount(1, $maleVariant);
     }
 
-    public function testReplaceRecursive(): void
+    #[Test]
+    public function replaceRecursive(): void
     {
         $s = $this->makeSelect();
         $replaced = $s->replaceRecursive([]);
-        self::assertInstanceOf(Select::class, $replaced);
+        $this->assertInstanceOf(Select::class, $replaced);
     }
 
-    public function testOnlyOtherReturnsOtherVariants(): void
+    #[Test]
+    public function onlyOtherReturnsOtherVariants(): void
     {
         $s = Select::create('x', ['other' => [new Pattern('fallback')]]);
         $variants = $s->getAllVariants();
         // only 'other' → no branching, returns other's variants directly
-        self::assertCount(1, $variants);
-        self::assertSame('fallback', (string) $variants[0]->types);
+        $this->assertCount(1, $variants);
+        $this->assertSame('fallback', (string) $variants[0]->types);
+    }
+
+    private function makeSelect(): Select
+    {
+        return Select::create('gender', [
+            'male' => [new Pattern('He')],
+            'female' => [new Pattern('She')],
+            'other' => [new Pattern('They')],
+        ]);
     }
 }

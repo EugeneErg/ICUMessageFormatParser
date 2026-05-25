@@ -1,85 +1,100 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Tests\DataTransferObjects;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\SelectOrdinal;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class SelectOrdinalTest extends TestCase
 {
-    public function testGetName(): void { self::assertSame('selectordinal', SelectOrdinal::getName()); }
+    #[Test]
+    public function getName(): void
+    {
+        $this->assertSame('selectordinal', SelectOrdinal::getName());
+    }
 
-    public function testToString(): void
+    #[Test]
+    public function toString(): void
     {
         $s = SelectOrdinal::create('place', [
-            'one'   => [new Pattern('1st')],
-            'two'   => [new Pattern('2nd')],
-            'few'   => [new Pattern('3rd')],
+            'one' => [new Pattern('1st')],
+            'two' => [new Pattern('2nd')],
+            'few' => [new Pattern('3rd')],
             'other' => [new Pattern('#th')],
         ]);
         $str = (string) $s;
-        self::assertStringContainsString('{place, selectordinal,', $str);
-        self::assertStringContainsString('one {1st}', $str);
-        self::assertStringContainsString('other {#th}', $str);
+        $this->assertStringContainsString('{place, selectordinal,', $str);
+        $this->assertStringContainsString('one {1st}', $str);
+        $this->assertStringContainsString('other {#th}', $str);
     }
 
-    public function testGetAllVariantsMultipleOptions(): void
+    #[Test]
+    public function getAllVariantsMultipleOptions(): void
     {
         $s = SelectOrdinal::create('n', [
-            'one'   => [new Pattern('st')],
+            'one' => [new Pattern('st')],
             'other' => [new Pattern('th')],
         ]);
         $variants = $s->getAllVariants();
-        self::assertCount(2, $variants);
+        $this->assertCount(2, $variants);
     }
 
-    public function testNumericEquality(): void
+    #[Test]
+    public function numericEquality(): void
     {
         $s = SelectOrdinal::create('n', [
-            '=1'    => [new Pattern('first')],
-            '=2'    => [new Pattern('second')],
+            '=1' => [new Pattern('first')],
+            '=2' => [new Pattern('second')],
             'other' => [new Pattern('other')],
         ]);
         $str = (string) $s;
-        self::assertStringContainsString('=1 {first}', $str);
-        self::assertStringContainsString('=2 {second}', $str);
+        $this->assertStringContainsString('=1 {first}', $str);
+        $this->assertStringContainsString('=2 {second}', $str);
     }
 
     // -----------------------------------------------------------------------
     // offset support
     // -----------------------------------------------------------------------
 
-    public function testSelectOrdinalOffsetDefault(): void
+    #[Test]
+    public function selectOrdinalOffsetDefault(): void
     {
         $s = SelectOrdinal::create('n', ['one' => [new Pattern('#st')], 'other' => [new Pattern('#th')]]);
-        self::assertSame(0, $s->offset);
+        $this->assertSame(0, $s->offset);
     }
 
-    public function testSelectOrdinalOffsetSerialisation(): void
+    #[Test]
+    public function selectOrdinalOffsetSerialisation(): void
     {
         $s = SelectOrdinal::create('n', [
             'offset' => 1,
-            'one'    => [new Pattern('#st')],
-            'other'  => [new Pattern('#th')],
+            'one' => [new Pattern('#st')],
+            'other' => [new Pattern('#th')],
         ]);
         $str = (string) $s;
-        self::assertStringContainsString('offset:1', $str);
-        self::assertMatchesRegularExpression('/\{n, selectordinal, offset:1 /', $str);
+        $this->assertStringContainsString('offset:1', $str);
+        $this->assertMatchesRegularExpression('/\\{n, selectordinal, offset:1 /', $str);
     }
 
-    public function testSelectOrdinalOffsetZeroNotSerialisedExplicitly(): void
+    #[Test]
+    public function selectOrdinalOffsetZeroNotSerialisedExplicitly(): void
     {
         $s = SelectOrdinal::create('n', ['other' => [new Pattern('#th')]]);
-        self::assertStringNotContainsString('offset:', (string) $s);
+        $this->assertStringNotContainsString('offset:', (string) $s);
     }
 
-    public function testSelectOrdinalOffsetPreservedInReplaceRecursive(): void
+    #[Test]
+    public function selectOrdinalOffsetPreservedInReplaceRecursive(): void
     {
-        $s        = SelectOrdinal::create('n', ['offset' => 2, 'other' => [new Pattern('#th')]]);
+        $s = SelectOrdinal::create('n', ['offset' => 2, 'other' => [new Pattern('#th')]]);
         $replaced = $s->replaceRecursive([]);
-        self::assertSame(2, $replaced->offset);
+        $this->assertSame(2, $replaced->offset);
     }
 }

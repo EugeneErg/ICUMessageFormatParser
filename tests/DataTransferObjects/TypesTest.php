@@ -1,148 +1,171 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Tests\DataTransferObjects;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class TypesTest extends TestCase
 {
-    public function testEmptyTypesToString(): void
+    #[Test]
+    public function emptyTypesToString(): void
     {
-        self::assertSame('', (string) new Types([]));
+        $this->assertSame('', (string) new Types([]));
     }
 
-    public function testPatternToString(): void
+    #[Test]
+    public function patternToString(): void
     {
-        self::assertSame('Hello ', (string) new Types([new Pattern('Hello ')]));
+        $this->assertSame('Hello ', (string) new Types([new Pattern('Hello ')]));
     }
 
-    public function testMixedToString(): void
+    #[Test]
+    public function mixedToString(): void
     {
         $types = new Types([new Pattern('Hello '), new Variable('name')]);
-        self::assertSame('Hello {name}', (string) $types);
+        $this->assertSame('Hello {name}', (string) $types);
     }
 
-    public function testGetAllVariantsEmpty(): void
+    #[Test]
+    public function getAllVariantsEmpty(): void
     {
         $variants = (new Types([]))->getAllVariants();
-        self::assertCount(1, $variants);
-        self::assertSame('', (string) $variants[0]->types);
+        $this->assertCount(1, $variants);
+        $this->assertSame('', (string) $variants[0]->types);
     }
 
-    public function testGetAllVariantsWithPattern(): void
+    #[Test]
+    public function getAllVariantsWithPattern(): void
     {
         $variants = (new Types([new Pattern('Hello')]))->getAllVariants();
-        self::assertCount(1, $variants);
-        self::assertSame('Hello', (string) $variants[0]->types);
+        $this->assertCount(1, $variants);
+        $this->assertSame('Hello', (string) $variants[0]->types);
     }
 
-    public function testGetAllVariablesEmpty(): void
+    #[Test]
+    public function getAllVariablesEmpty(): void
     {
-        self::assertSame([], (new Types([new Pattern('text')]))->getAllVariables());
+        $this->assertSame([], (new Types([new Pattern('text')]))->getAllVariables());
     }
 
-    public function testGetAllVariablesWithVariable(): void
+    #[Test]
+    public function getAllVariablesWithVariable(): void
     {
         $types = new Types([new Variable('name'), new Variable('age'), new Variable('name')]);
         $vars = $types->getAllVariables();
-        self::assertContains('name', $vars);
-        self::assertContains('age', $vars);
-        self::assertCount(2, $vars); // unique
+        $this->assertContains('name', $vars);
+        $this->assertContains('age', $vars);
+        $this->assertCount(2, $vars); // unique
     }
 
-    public function testMapTransformsTypes(): void
+    #[Test]
+    public function mapTransformsTypes(): void
     {
         $types = new Types([new Pattern('hello')]);
-        $mapped = $types->map(fn ($t) => new Pattern(strtoupper($t->value)));
-        self::assertSame('HELLO', (string) $mapped);
+        $mapped = $types->map(static fn($t) => new Pattern(strtoupper($t->value)));
+        $this->assertSame('HELLO', (string) $mapped);
     }
 
-    public function testFilterReducesTypes(): void
+    #[Test]
+    public function filterReducesTypes(): void
     {
         $types = new Types([new Pattern('a'), new Variable('x'), new Pattern('b')]);
-        $filtered = $types->filter(fn ($t) => $t instanceof Pattern);
-        self::assertCount(2, $filtered->types);
+        $filtered = $types->filter(static fn($t) => $t instanceof Pattern);
+        $this->assertCount(2, $filtered->types);
     }
 
-    public function testQuoteWrapsNonPatterns(): void
+    #[Test]
+    public function quoteWrapsNonPatterns(): void
     {
         $types = new Types([new Variable('name'), new Pattern('hello')]);
         $quoted = $types->quote();
-        self::assertInstanceOf(Text::class,    array_values($quoted->types)[0]);
-        self::assertInstanceOf(Pattern::class, array_values($quoted->types)[1]);
+        $this->assertInstanceOf(Text::class, array_values($quoted->types)[0]);
+        $this->assertInstanceOf(Pattern::class, array_values($quoted->types)[1]);
     }
 
-    public function testReplaceVariableName(): void
+    #[Test]
+    public function replaceVariableName(): void
     {
         $types = new Types([new Variable('count'), new Pattern(' items')]);
         $replaced = $types->replaceVariableName('count', '#');
-        self::assertSame('#', $replaced->types[0]->value);
+        $this->assertSame('#', $replaced->types[0]->value);
     }
 
-    public function testReplaceVariableNameNoMatch(): void
+    #[Test]
+    public function replaceVariableNameNoMatch(): void
     {
         $types = new Types([new Variable('other')]);
         $replaced = $types->replaceVariableName('count', '#');
-        self::assertSame('other', $replaced->types[0]->value);
+        $this->assertSame('other', $replaced->types[0]->value);
     }
 
     /**
      * setValues replaces Variable with Text. Text::__toString() wraps value in ICU single
      * quotes, so 'Hello 'Alice'' is the correct ICU serialisation of "Hello " + text("Alice").
      */
-    public function testSetValuesReplacesVariableWithText(): void
+    #[Test]
+    public function setValuesReplacesVariableWithText(): void
     {
         $types = new Types([new Pattern('Hello '), new Variable('name')]);
         $result = $types->setValues(['name' => 'World']);
         // Text wraps in ICU quotes: Pattern "Hello " + Text "'World'" → "Hello 'World'"
-        self::assertSame("Hello 'World'", (string) $result);
-        self::assertInstanceOf(Text::class, $result->types[1]);
+        $this->assertSame("Hello 'World'", (string) $result);
+        $this->assertInstanceOf(Text::class, $result->types[1]);
     }
 
-    public function testSetValuesNoMatch(): void
+    #[Test]
+    public function setValuesNoMatch(): void
     {
         $types = new Types([new Variable('name')]);
         $result = $types->setValues(['other' => 'value']);
-        self::assertInstanceOf(Variable::class, $result->types[0]);
+        $this->assertInstanceOf(Variable::class, $result->types[0]);
     }
 
     /**
      * getVariables uses array_filter internally which does NOT re-index keys.
      * Use array_values() to get numerically indexed access.
      */
-    public function testGetVariables(): void
+    #[Test]
+    public function getVariables(): void
     {
         $types = new Types([new Pattern('text'), new Variable('x'), new Pattern('more')]);
         $vars = $types->getVariables();
-        self::assertCount(1, $vars->types);
+        $this->assertCount(1, $vars->types);
         $indexed = array_values($vars->types);
-        self::assertInstanceOf(Variable::class, $indexed[0]);
-        self::assertSame('x', $indexed[0]->value);
+        $this->assertInstanceOf(Variable::class, $indexed[0]);
+        $this->assertSame('x', $indexed[0]->value);
     }
 
-    public function testGetVariablesEmpty(): void
+    #[Test]
+    public function getVariablesEmpty(): void
     {
         $types = new Types([new Pattern('only patterns')]);
-        self::assertCount(0, $types->getVariables()->types);
+        $this->assertCount(0, $types->getVariables()->types);
     }
 
-    public function testReplaceRecursive(): void
+    #[Test]
+    public function replaceRecursive(): void
     {
         $placeholder = new Pattern('0');
         $replacement = new Types([new Pattern('Hello World')]);
         $result = (new Types([$placeholder]))->replaceRecursive(['0' => $replacement]);
-        self::assertSame('Hello World', (string) $result);
+        $this->assertSame('Hello World', (string) $result);
     }
 
-    public function testReplaceRecursiveUnknownKeyPassesThrough(): void
+    #[Test]
+    public function replaceRecursiveUnknownKeyPassesThrough(): void
     {
         $types = new Types([new Pattern('unchanged')]);
         $result = $types->replaceRecursive(['other' => new Types([new Pattern('X')])]);
-        self::assertSame('unchanged', (string) $result);
+        $this->assertSame('unchanged', (string) $result);
     }
 }
