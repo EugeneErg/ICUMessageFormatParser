@@ -34,7 +34,7 @@ final class SkeletonTest extends TestCase
 {
     private static function parse(string $skeleton): Skeleton
     {
-        $tokens = preg_split('/\\s+/', trim($skeleton));
+        $tokens = (array) preg_split('/\\s+/', trim($skeleton));
 
         return Skeleton::createFromOptions(array_values(array_filter($tokens)));
     }
@@ -67,7 +67,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideFormatRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideFormatRoundtripCases(): array
     {
         return [
             'decimal (default, no output)' => ['', ''],
@@ -123,7 +126,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideNotationRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideNotationRoundtripCases(): array
     {
         return [
             'standard → no output' => ['standard', ''],
@@ -158,7 +164,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideScientificOptionsRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideScientificOptionsRoundtripCases(): array
     {
         return [
             'scientific default' => ['scientific', '::scientific'],
@@ -194,7 +203,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideSignRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideSignRoundtripCases(): array
     {
         return [
             'auto (default, no output)' => ['sign-auto', ''],
@@ -238,7 +250,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideUnitWidthRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideUnitWidthRoundtripCases(): array
     {
         return [
             'short (default, no output)' => ['unit-width-short', ''],
@@ -256,7 +271,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideNamedPrecisionRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideNamedPrecisionRoundtripCases(): array
     {
         return [
             'precision-integer' => ['precision-integer', '::precision-integer'],
@@ -282,7 +300,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideFractionPrecisionRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideFractionPrecisionRoundtripCases(): array
     {
         return [
             '.00 exact' => ['.00', '::.00'],
@@ -338,7 +359,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideSignificantPrecisionRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideSignificantPrecisionRoundtripCases(): array
     {
         return [
             '@@@  fixed 3' => ['@@@', '::@@@'],
@@ -383,7 +407,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideIncrementPrecisionRoundtripCases(): iterable
+    /**
+     * @return array<string|int, string[]>
+     */
+    public static function provideIncrementPrecisionRoundtripCases(): array
     {
         return [
             '0.05' => ['precision-increment/0.05', '::precision-increment/0.05'],
@@ -408,7 +435,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideGroupingRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideGroupingRoundtripCases(): array
     {
         return [
             'auto (default, no output)' => ['group-auto', ''],
@@ -439,7 +469,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideScaleRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideScaleRoundtripCases(): array
     {
         return [
             'scale 100' => ['scale/100', '::scale/100'],
@@ -462,7 +495,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideIntegerWidthRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideIntegerWidthRoundtripCases(): array
     {
         return [
             'integer-width/*000 at-least-3' => ['integer-width/*000', '000'],
@@ -514,7 +550,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideRoundingModeRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideRoundingModeRoundtripCases(): array
     {
         return [
             'ceiling' => ['rounding-mode-ceiling', '::rounding-mode-ceiling'],
@@ -548,7 +587,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideDecimalSeparatorRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideDecimalSeparatorRoundtripCases(): array
     {
         return [
             'auto (default, no output)' => ['decimal-auto', ''],
@@ -570,7 +612,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideNumberingSystemRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideNumberingSystemRoundtripCases(): array
     {
         return [
             'latin' => ['latin', '::latin'],
@@ -594,7 +639,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideMeasureUnitRoundtripCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideMeasureUnitRoundtripCases(): array
     {
         return [
             'length-meter' => ['measure-unit/length-meter', '::measure-unit/length-meter'],
@@ -631,7 +679,10 @@ final class SkeletonTest extends TestCase
         $this->assertSame($expectedPrecision, $precisionStr, "Default precision for: {$skeleton}");
     }
 
-    public static function provideDefaultPrecisionByFormatCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideDefaultPrecisionByFormatCases(): array
     {
         return [
             'decimal → .##' => ['', '.##'],
@@ -650,7 +701,10 @@ final class SkeletonTest extends TestCase
         self::assertRoundtrip($input, $expected);
     }
 
-    public static function provideCombinationsCases(): iterable
+    /**
+     * @return array<string, string[]>
+     */
+    public static function provideCombinationsCases(): array
     {
         return [
             'percent + fraction' => ['percent .00', '::percent .00'],

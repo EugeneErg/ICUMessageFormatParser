@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use LogicException;
 
 use function is_int;
@@ -46,6 +47,9 @@ final readonly class SelectOrdinal extends AbstractSelect
         return 'selectordinal';
     }
 
+    /**
+     * @param array<ICUTypeInterface[]|int> $options
+     */
     public static function create(string $value, array $options = []): self
     {
         $arguments = [];

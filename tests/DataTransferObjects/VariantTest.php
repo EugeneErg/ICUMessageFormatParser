@@ -40,6 +40,7 @@ final class VariantTest extends TestCase
         // Two Pattern nodes should merge into one
         $a = new Variant(new Types([new Pattern('A')]));
         $b = new Variant(new Types([new Pattern('B')]));
+        /** @var Variant $m */
         $m = $a->merge($b);
         $this->assertCount(1, $m->types->types); // merged into single Pattern
         $this->assertSame('AB', (string) $m->types);
@@ -78,6 +79,7 @@ final class VariantTest extends TestCase
     {
         $a = new Variant(new Types([]));
         $b = new Variant(new Types([new Pattern('X')]));
+        /** @var Variant $m */
         $m = $a->merge($b);
         $this->assertSame('X', (string) $m->types);
     }

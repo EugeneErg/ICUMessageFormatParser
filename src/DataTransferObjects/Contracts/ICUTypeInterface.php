@@ -12,6 +12,11 @@ interface ICUTypeInterface extends Stringable
 {
     public function __toString(): string;
 
+    /**
+     * @param mixed[] $options
+     *
+     * @return static
+     */
     public static function create(string $value, array $options = []): self;
 
     /**

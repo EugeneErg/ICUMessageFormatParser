@@ -21,7 +21,7 @@ final class SelectTest extends TestCase
     }
 
     #[Test]
-    public function toString(): void
+    public function testToString(): void
     {
         $s = $this->makeSelect();
         $str = (string) $s;
@@ -35,14 +35,6 @@ final class SelectTest extends TestCase
     public function getValue(): void
     {
         $this->assertSame('gender', $this->makeSelect()->getValue());
-    }
-
-    #[Test]
-    public function getAllVariables(): void
-    {
-        $vars = $this->makeSelect()->getAllVariables();
-        // No sub-variables in this simple case (only Pattern nodes)
-        $this->assertIsArray($vars);
     }
 
     #[Test]

@@ -21,7 +21,7 @@ final class SelectOrdinalTest extends TestCase
     }
 
     #[Test]
-    public function toString(): void
+    public function testToString(): void
     {
         $s = SelectOrdinal::create('place', [
             'one' => [new Pattern('1st')],

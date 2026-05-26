@@ -15,7 +15,7 @@ final readonly class Variant
     public Types $types;
 
     /**
-     * @param array<class-string<AbstractSelect>, array<string, string|string[]>> $cases
+     * @param array<string, array<string, string|string[]>> $cases
      */
     public function __construct(
         Types|null $types = null,

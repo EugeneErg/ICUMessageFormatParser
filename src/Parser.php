@@ -297,7 +297,7 @@ readonly class Parser
 
         foreach ($classCases as $key => $value) {
             $option = is_string($value) ? $value : 'other';
-            $options[$option][$key] = $cases[$key];
+            $options[$option][(string) $key] = $cases[$key];
         }
 
         foreach ($options as $option => $subCases) {

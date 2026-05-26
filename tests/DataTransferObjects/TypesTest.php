@@ -71,7 +71,7 @@ final class TypesTest extends TestCase
     public function mapTransformsTypes(): void
     {
         $types = new Types([new Pattern('hello')]);
-        $mapped = $types->map(static fn ($t) => new Pattern(strtoupper($t->value)));
+        $mapped = $types->map(static fn (Pattern $t) => new Pattern(strtoupper($t->value)));
         $this->assertSame('HELLO', (string) $mapped);
     }
 
@@ -97,7 +97,9 @@ final class TypesTest extends TestCase
     {
         $types = new Types([new Variable('count'), new Pattern(' items')]);
         $replaced = $types->replaceVariableName('count', '#');
-        $this->assertSame('#', $replaced->types[0]->value);
+        /** @var Variable $firstType */
+        $firstType = $replaced->types[0];
+        $this->assertSame('#', $firstType->value);
     }
 
     #[Test]
@@ -105,7 +107,9 @@ final class TypesTest extends TestCase
     {
         $types = new Types([new Variable('other')]);
         $replaced = $types->replaceVariableName('count', '#');
-        $this->assertSame('other', $replaced->types[0]->value);
+        /** @var Variable $firstType */
+        $firstType = $replaced->types[0];
+        $this->assertSame('other', $firstType->value);
     }
 
     /**

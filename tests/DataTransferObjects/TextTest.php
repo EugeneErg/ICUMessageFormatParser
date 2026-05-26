@@ -38,6 +38,7 @@ final class TextTest extends TestCase
         $b = new Text('World');
         $merged = $a->merge($b);
         $this->assertCount(1, $merged);
+        /** @var Text[] $merged */
         $this->assertSame('Hello World', $merged[0]->value);
     }
 
