@@ -71,7 +71,7 @@ final class TypesTest extends TestCase
     public function mapTransformsTypes(): void
     {
         $types = new Types([new Pattern('hello')]);
-        $mapped = $types->map(static fn($t) => new Pattern(strtoupper($t->value)));
+        $mapped = $types->map(static fn ($t) => new Pattern(strtoupper($t->value)));
         $this->assertSame('HELLO', (string) $mapped);
     }
 
@@ -79,7 +79,7 @@ final class TypesTest extends TestCase
     public function filterReducesTypes(): void
     {
         $types = new Types([new Pattern('a'), new Variable('x'), new Pattern('b')]);
-        $filtered = $types->filter(static fn($t) => $t instanceof Pattern);
+        $filtered = $types->filter(static fn ($t) => $t instanceof Pattern);
         $this->assertCount(2, $filtered->types);
     }
 

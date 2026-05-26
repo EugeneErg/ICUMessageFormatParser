@@ -185,10 +185,12 @@ readonly class Parser
 
     /**
      * @param Value[] $children
+     *
+     * @return string[]
      */
     private function getSkeletonOptions(array $children): array
     {
-        return array_merge(['::'], array_map(static fn(Value $value) => $value->value, $children));
+        return array_merge(['::'], array_map(static fn (Value $value) => $value->value, $children));
     }
 
     /**

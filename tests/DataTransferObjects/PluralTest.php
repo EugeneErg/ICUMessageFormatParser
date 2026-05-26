@@ -110,7 +110,7 @@ final class PluralTest extends TestCase
     public function variantContainsPluralCaseInfo(): void
     {
         $variants = $this->makePlural()->getAllVariants();
-        $oneVariant = array_filter($variants, static fn($v) => ($v->cases['plural']['count'] ?? null) === 'one');
+        $oneVariant = array_filter($variants, static fn ($v) => ($v->cases['plural']['count'] ?? null) === 'one');
         $this->assertCount(1, $oneVariant);
     }
 

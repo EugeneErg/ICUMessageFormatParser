@@ -58,7 +58,7 @@ final class SelectTest extends TestCase
     public function getAllVariantsCasesContainSelectKey(): void
     {
         $variants = $this->makeSelect()->getAllVariants();
-        $maleVariant = array_filter($variants, static fn($v) => ($v->cases['select']['gender'] ?? null) === 'male');
+        $maleVariant = array_filter($variants, static fn ($v) => ($v->cases['select']['gender'] ?? null) === 'male');
         $this->assertCount(1, $maleVariant);
     }
 

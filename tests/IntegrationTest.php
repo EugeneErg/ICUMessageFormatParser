@@ -91,7 +91,7 @@ final class IntegrationTest extends TestCase
         $variants = $types->getAllVariants();
         $this->assertCount(3, $variants);
 
-        $texts = array_map(static fn($v) => (string) $v->types, $variants);
+        $texts = array_map(static fn ($v) => (string) $v->types, $variants);
         $this->assertContains('He liked this.', $texts);
         $this->assertContains('She liked this.', $texts);
         $this->assertContains('They liked this.', $texts);
@@ -120,7 +120,7 @@ final class IntegrationTest extends TestCase
             'other' => [new Pattern('They')],
         ])->getAllVariants();
 
-        $maleVariants = array_filter($variants, static fn($v) => ($v->cases['select']['gender'] ?? null) === 'male');
+        $maleVariants = array_filter($variants, static fn ($v) => ($v->cases['select']['gender'] ?? null) === 'male');
         $this->assertCount(1, $maleVariants);
     }
 
@@ -141,7 +141,7 @@ final class IntegrationTest extends TestCase
         $variants = $types->getAllVariants();
         $this->assertCount(2, $variants);
 
-        $texts = array_map(static fn($v) => (string) $v->types, $variants);
+        $texts = array_map(static fn ($v) => (string) $v->types, $variants);
         $this->assertContains('1 item', $texts);
         // '#' replaced by 'count' variable during create()
         $this->assertContains('{count} items', $texts);
@@ -252,13 +252,13 @@ final class IntegrationTest extends TestCase
             ]),
         ]);
 
-        $texts = array_map(static fn($v) => (string) $v->types, $types->getAllVariants());
+        $texts = array_map(static fn ($v) => (string) $v->types, $types->getAllVariants());
         $this->assertContains('He has 1 item', $texts);
         $this->assertContains('They have 1 item', $texts);
         // '#' in the nested Select was not under Plural's replaceVariableName scope
         // (Select::create already ran); the actual variable name in variants is 'gender'
-        $hasHim = array_filter($texts, static fn($t) => str_contains($t, 'items for him'));
-        $hasThem = array_filter($texts, static fn($t) => str_contains($t, 'items for them'));
+        $hasHim = array_filter($texts, static fn ($t) => str_contains($t, 'items for him'));
+        $hasThem = array_filter($texts, static fn ($t) => str_contains($t, 'items for them'));
         $this->assertNotEmpty($hasHim);
         $this->assertNotEmpty($hasThem);
     }

@@ -82,13 +82,13 @@ final readonly class Types implements Stringable
 
     public function quote(): self
     {
-        return $this->map(static fn(ICUTypeInterface $type) => $type instanceof Pattern ? $type : new Text((string) $type));
+        return $this->map(static fn (ICUTypeInterface $type) => $type instanceof Pattern ? $type : new Text((string) $type));
     }
 
     public function replaceVariableName(string $from, string $to): self
     {
         return $this->map(
-            static fn(ICUTypeInterface $type) => $type instanceof Variable && $type->value === $from
+            static fn (ICUTypeInterface $type) => $type instanceof Variable && $type->value === $from
                 ? new Variable($to)
                 : $type,
         );
@@ -97,7 +97,7 @@ final readonly class Types implements Stringable
     public function setValues(array $values): self
     {
         return $this->map(
-            static fn(ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface && isset($values[$type->getValue()])
+            static fn (ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface && isset($values[$type->getValue()])
                 ? new Text($values[$type->getValue()])
                 : $type,
         );
@@ -105,7 +105,7 @@ final readonly class Types implements Stringable
 
     public function getVariables(): self
     {
-        return $this->filter(static fn(ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface);
+        return $this->filter(static fn (ICUTypeInterface $type) => $type instanceof ICUTypeVariableInterface);
     }
 
     /**

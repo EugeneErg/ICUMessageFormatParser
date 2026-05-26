@@ -266,7 +266,7 @@ return (new Config())
         'date_time_immutable'        => false,  // risky — не заменять DateTime на DateTimeImmutable
         'fopen_flag_order'           => true,   // risky
         'fopen_flags'                => ['b_mode' => false],  // risky
-        'function_declaration'       => ['closure_function_spacing' => 'one', 'closure_fn_spacing' => 'none'],
+        'function_declaration'       => ['closure_function_spacing' => 'one', 'closure_fn_spacing' => 'one'],
         'function_typehint_space'    => true,
         'implode_call'               => true,   // risky: implode($a, $b) → implode($b, $a)
         'lambda_not_used_import'     => true,

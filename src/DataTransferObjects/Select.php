@@ -38,7 +38,7 @@ final readonly class Select extends AbstractSelect
         return new self(
             $value,
             (new Types($other))->replaceVariableName('#', $value),
-            array_map(static fn(array $option) => (new Types($option))->replaceVariableName('#', $value), $options),
+            array_map(static fn (array $option) => (new Types($option))->replaceVariableName('#', $value), $options),
         );
     }
 
@@ -47,7 +47,7 @@ final readonly class Select extends AbstractSelect
         return new self(
             $this->value,
             $this->other->replaceRecursive($replace),
-            array_map(static fn(Types $types) => $types->replaceRecursive($replace), $this->options),
+            array_map(static fn (Types $types) => $types->replaceRecursive($replace), $this->options),
         );
     }
 

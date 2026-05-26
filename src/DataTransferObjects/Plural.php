@@ -87,7 +87,7 @@ final readonly class Plural extends AbstractSelect
             two: $this->two?->replaceRecursive($replace),
             few: $this->few?->replaceRecursive($replace),
             many: $this->many?->replaceRecursive($replace),
-            numbers: array_map(static fn(Types $types) => $types->replaceRecursive($replace), $this->numbers),
+            numbers: array_map(static fn (Types $types) => $types->replaceRecursive($replace), $this->numbers),
             offset: $this->offset,
         );
     }
