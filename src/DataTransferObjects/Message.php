@@ -9,7 +9,7 @@ use Stringable;
 final readonly class Message implements Stringable
 {
     /**
-     * @var array<string|Text>
+     * @var array<Pattern|Text>
      */
     public array $values;
 

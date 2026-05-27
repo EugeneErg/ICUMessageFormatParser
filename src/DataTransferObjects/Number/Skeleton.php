@@ -75,6 +75,7 @@ final readonly class Skeleton implements Stringable
 
     public function __toString(): string
     {
+        /** @var list<string> $tokens */
         $tokens = [];
         $canBeSimple = true;
 
@@ -94,7 +95,7 @@ final readonly class Skeleton implements Stringable
         }
 
         // --- notation ---
-        $notationStr = (string) $this->notation;
+        $notationStr = $this->notation instanceof NumberNotation ? (string) $this->notation : $this->notation->value;
 
         if ($notationStr !== '') {
             $tokens[] = $notationStr;

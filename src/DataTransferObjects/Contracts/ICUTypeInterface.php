@@ -20,7 +20,7 @@ interface ICUTypeInterface extends Stringable
     public static function create(string $value, array $options = []): self;
 
     /**
-     * @param array<class-string<AbstractSelect>, array<string, string|string[]>> $cases
+     * @param array<class-string<AbstractSelect>, array<string, string|string[]|null>> $cases
      *
      * @return Variant[]
      */

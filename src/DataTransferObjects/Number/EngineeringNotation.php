@@ -19,6 +19,6 @@ final readonly class EngineeringNotation extends NumberNotation
 
     public function __toString(): string
     {
-        return 'engineering' . ($this->options ?? '');
+        return 'engineering' . $this->options;
     }
 }

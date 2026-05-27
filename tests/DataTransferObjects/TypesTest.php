@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\DataTransferObjects;
 
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
@@ -71,7 +72,11 @@ final class TypesTest extends TestCase
     public function mapTransformsTypes(): void
     {
         $types = new Types([new Pattern('hello')]);
-        $mapped = $types->map(static fn (Pattern $t) => new Pattern(strtoupper($t->value)));
+
+        $mapped = $types->map(static function (ICUTypeInterface $t) {
+            /** @var Pattern $t */
+            return new Pattern(strtoupper($t->value));
+        });
         $this->assertSame('HELLO', (string) $mapped);
     }
 

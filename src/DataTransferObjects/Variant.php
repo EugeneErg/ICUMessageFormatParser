@@ -15,7 +15,7 @@ final readonly class Variant
     public Types $types;
 
     /**
-     * @param array<string, array<string, string|string[]>> $cases
+     * @param array<string, array<string, string|string[]|null>> $cases
      */
     public function __construct(
         Types|null $types = null,
@@ -54,8 +54,14 @@ final readonly class Variant
         );
     }
 
+    /**
+     * @param array<string, array<string, string|string[]|null>> $cases
+     *
+     * @return array<string, array<string, string|string[]|null>>|null
+     */
     private function mergeCases(array $cases): array|null
     {
+        /** @var array<string, array<string, string|string[]>> $cases */
         foreach ($this->cases as $class => $values) {
             if (!isset($cases[$class])) {
                 $cases[$class] = $values;
@@ -78,17 +84,26 @@ final readonly class Variant
                         return null;
                     }
                 } elseif ($caseAIsString) {
-                    if (in_array($value, $cases[$class][$name], true)) {
+                    /** @var string[] $caseBValue */
+                    $caseBValue = $cases[$class][$name];
+
+                    if (in_array($value, $caseBValue, true)) {
                         return null;
                     }
 
                     $cases[$class][$name] = $value;
                 } elseif ($caseBIsString) {
-                    if (in_array($cases[$class][$name], $value, true)) {
+                    /** @var string $caseBString */
+                    $caseBString = $cases[$class][$name];
+
+                    if (in_array($caseBString, $value, true)) {
                         return null;
                     }
                 } else {
-                    $cases[$class][$name] = array_unique(array_merge($cases[$class][$name], $value));
+                    /** @var string[] $caseBArr */
+                    $caseBArr = $cases[$class][$name];
+                    /** @var string[] $value */
+                    $cases[$class][$name] = array_unique(array_merge($caseBArr, $value));
                 }
             }
         }

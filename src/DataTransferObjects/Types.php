@@ -23,7 +23,7 @@ final readonly class Types implements Stringable
     }
 
     /**
-     * @param array<class-string<AbstractSelect>, array<string, string|string[]>> $cases
+     * @param array<class-string<AbstractSelect>, array<string, string|string[]|null>> $cases
      *
      * @return Variant[]
      */
@@ -70,14 +70,20 @@ final readonly class Types implements Stringable
         return array_unique(array_merge(...$result));
     }
 
+    /**
+     * @param callable(ICUTypeInterface): ICUTypeInterface $callback
+     */
     public function map(callable $callback): self
     {
         return new self(array_map($callback, $this->types));
     }
 
+    /**
+     * @param callable(ICUTypeInterface): bool $callback
+     */
     public function filter(callable $callback): self
     {
-        return new self(array_filter($this->types, $callback));
+        return new self(array_values(array_filter($this->types, $callback)));
     }
 
     public function quote(): self
@@ -94,6 +100,9 @@ final readonly class Types implements Stringable
         );
     }
 
+    /**
+     * @param array<string, string> $values
+     */
     public function setValues(array $values): self
     {
         return $this->map(
