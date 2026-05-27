@@ -97,6 +97,7 @@ final class TypesTest extends TestCase
     {
         $types = new Types([new Variable('count'), new Pattern(' items')]);
         $replaced = $types->replaceVariableName('count', '#');
+
         /** @var Variable $firstType */
         $firstType = $replaced->types[0];
         $this->assertSame('#', $firstType->value);
@@ -107,6 +108,7 @@ final class TypesTest extends TestCase
     {
         $types = new Types([new Variable('other')]);
         $replaced = $types->replaceVariableName('count', '#');
+
         /** @var Variable $firstType */
         $firstType = $replaced->types[0];
         $this->assertSame('other', $firstType->value);

@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 final class PatternTest extends TestCase
 {
     #[Test]
-    public function testToString(): void
+    public function toStringTest(): void
     {
         $this->assertSame('Hello', (string) new Pattern('Hello'));
     }
@@ -54,6 +54,7 @@ final class PatternTest extends TestCase
         $b = new Pattern('World');
         $merged = $a->merge($b);
         $this->assertCount(1, $merged);
+
         /** @var Pattern[] $merged */
         $this->assertSame('Hello World', $merged[0]->value);
     }
@@ -64,6 +65,7 @@ final class PatternTest extends TestCase
         // merge accepts any ICUTypeInterface but Text is different class
         $a = new Pattern('Hello');
         $b = new Text(' World');
+
         /** @var Pattern[] $merged */
         $merged = $a->merge($b);
         $this->assertSame('Hello World', $merged[0]->value);

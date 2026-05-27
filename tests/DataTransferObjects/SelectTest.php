@@ -21,7 +21,7 @@ final class SelectTest extends TestCase
     }
 
     #[Test]
-    public function testToString(): void
+    public function toStringTest(): void
     {
         $s = $this->makeSelect();
         $str = (string) $s;

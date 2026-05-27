@@ -70,7 +70,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideFormatRoundtripCases(): array
+    public static function provideFormatRoundtripCases(): iterable
     {
         return [
             'decimal (default, no output)' => ['', ''],
@@ -129,7 +129,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideNotationRoundtripCases(): array
+    public static function provideNotationRoundtripCases(): iterable
     {
         return [
             'standard → no output' => ['standard', ''],
@@ -167,7 +167,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideScientificOptionsRoundtripCases(): array
+    public static function provideScientificOptionsRoundtripCases(): iterable
     {
         return [
             'scientific default' => ['scientific', '::scientific'],
@@ -206,7 +206,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideSignRoundtripCases(): array
+    public static function provideSignRoundtripCases(): iterable
     {
         return [
             'auto (default, no output)' => ['sign-auto', ''],
@@ -253,7 +253,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideUnitWidthRoundtripCases(): array
+    public static function provideUnitWidthRoundtripCases(): iterable
     {
         return [
             'short (default, no output)' => ['unit-width-short', ''],
@@ -274,7 +274,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideNamedPrecisionRoundtripCases(): array
+    public static function provideNamedPrecisionRoundtripCases(): iterable
     {
         return [
             'precision-integer' => ['precision-integer', '::precision-integer'],
@@ -303,7 +303,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideFractionPrecisionRoundtripCases(): array
+    public static function provideFractionPrecisionRoundtripCases(): iterable
     {
         return [
             '.00 exact' => ['.00', '::.00'],
@@ -362,7 +362,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideSignificantPrecisionRoundtripCases(): array
+    public static function provideSignificantPrecisionRoundtripCases(): iterable
     {
         return [
             '@@@  fixed 3' => ['@@@', '::@@@'],
@@ -408,9 +408,9 @@ final class SkeletonTest extends TestCase
     }
 
     /**
-     * @return array<string|int, string[]>
+     * @return array<int|string, string[]>
      */
-    public static function provideIncrementPrecisionRoundtripCases(): array
+    public static function provideIncrementPrecisionRoundtripCases(): iterable
     {
         return [
             '0.05' => ['precision-increment/0.05', '::precision-increment/0.05'],
@@ -438,7 +438,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideGroupingRoundtripCases(): array
+    public static function provideGroupingRoundtripCases(): iterable
     {
         return [
             'auto (default, no output)' => ['group-auto', ''],
@@ -472,7 +472,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideScaleRoundtripCases(): array
+    public static function provideScaleRoundtripCases(): iterable
     {
         return [
             'scale 100' => ['scale/100', '::scale/100'],
@@ -498,7 +498,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideIntegerWidthRoundtripCases(): array
+    public static function provideIntegerWidthRoundtripCases(): iterable
     {
         return [
             'integer-width/*000 at-least-3' => ['integer-width/*000', '000'],
@@ -553,7 +553,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideRoundingModeRoundtripCases(): array
+    public static function provideRoundingModeRoundtripCases(): iterable
     {
         return [
             'ceiling' => ['rounding-mode-ceiling', '::rounding-mode-ceiling'],
@@ -590,7 +590,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideDecimalSeparatorRoundtripCases(): array
+    public static function provideDecimalSeparatorRoundtripCases(): iterable
     {
         return [
             'auto (default, no output)' => ['decimal-auto', ''],
@@ -615,7 +615,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideNumberingSystemRoundtripCases(): array
+    public static function provideNumberingSystemRoundtripCases(): iterable
     {
         return [
             'latin' => ['latin', '::latin'],
@@ -642,7 +642,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideMeasureUnitRoundtripCases(): array
+    public static function provideMeasureUnitRoundtripCases(): iterable
     {
         return [
             'length-meter' => ['measure-unit/length-meter', '::measure-unit/length-meter'],
@@ -682,7 +682,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideDefaultPrecisionByFormatCases(): array
+    public static function provideDefaultPrecisionByFormatCases(): iterable
     {
         return [
             'decimal → .##' => ['', '.##'],
@@ -704,7 +704,7 @@ final class SkeletonTest extends TestCase
     /**
      * @return array<string, string[]>
      */
-    public static function provideCombinationsCases(): array
+    public static function provideCombinationsCases(): iterable
     {
         return [
             'percent + fraction' => ['percent .00', '::percent .00'],
