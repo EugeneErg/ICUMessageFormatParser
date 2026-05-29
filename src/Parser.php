@@ -87,7 +87,7 @@ readonly class Parser
 
     public function quote(string $text): string
     {
-        return preg_replace(['{\'}', '{[{}]+}'], ['\'\'', '\'$0\''], $text);
+        return (string) preg_replace(['{\'}', '{[{}]+}'], ['\'\'', '\'$0\''], $text);
     }
 
     public function typesToCases(Types $types, callable|null $makeKey = null): Cases
