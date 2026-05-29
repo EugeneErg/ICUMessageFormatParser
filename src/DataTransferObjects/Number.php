@@ -9,6 +9,7 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeVariab
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
 
 use function count;
+use function is_string;
 
 final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterface
 {
@@ -25,9 +26,13 @@ final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterfac
 
     public static function create(string $value, array $options = []): self
     {
+        /** @var array<Pattern|string|Text> $options */
         return new self($value, self::makeOptions($options));
     }
 
+    /**
+     * @param array<Pattern|string|Text> $options
+     */
     /**
      * @param array<Pattern|string|Text> $options
      */
@@ -40,7 +45,10 @@ final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterfac
         if ($options[0] === '::') {
             unset($options[0]);
 
-            return Skeleton::createFromOptions($options);
+            /** @var array<int, string> $skeletonTokens */
+            $skeletonTokens = array_values(array_filter($options, 'is_string'));
+
+            return Skeleton::createFromOptions($skeletonTokens);
         }
 
         if (count($options) === 1 && $options[0] instanceof Pattern) {
@@ -51,7 +59,12 @@ final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterfac
             }
         }
 
-        return new Message(...$options);
+        $messageArgs = array_map(
+            static fn (Pattern|string|Text $o): Pattern|Text => is_string($o) ? new Pattern($o) : $o,
+            $options,
+        );
+
+        return new Message(...$messageArgs);
     }
 
     public function getAllVariants(array $cases = []): array

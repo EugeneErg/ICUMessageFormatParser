@@ -61,7 +61,6 @@ final readonly class Variant
      */
     private function mergeCases(array $cases): array|null
     {
-        /** @var array<string, array<string, string|string[]>> $cases */
         foreach ($this->cases as $class => $values) {
             if (!isset($cases[$class])) {
                 $cases[$class] = $values;
@@ -96,12 +95,16 @@ final readonly class Variant
                     /** @var string $caseBString */
                     $caseBString = $cases[$class][$name];
 
-                    if (in_array($caseBString, $value, true)) {
+                    /** @var string[] $valueArr */
+                    $valueArr = $value;
+
+                    if (in_array($caseBString, $valueArr, true)) {
                         return null;
                     }
                 } else {
                     /** @var string[] $caseBArr */
                     $caseBArr = $cases[$class][$name];
+
                     /** @var string[] $value */
                     $cases[$class][$name] = array_unique(array_merge($caseBArr, $value));
                 }

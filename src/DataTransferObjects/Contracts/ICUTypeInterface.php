@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts;
 
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\AbstractSelect;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
 use Stringable;
 
@@ -20,7 +19,7 @@ interface ICUTypeInterface extends Stringable
     public static function create(string $value, array $options = []): self;
 
     /**
-     * @param array<class-string<AbstractSelect>, array<string, string|string[]|null>> $cases
+     * @param array<string, array<string, string|string[]|null>> $cases
      *
      * @return Variant[]
      */

@@ -20,11 +20,14 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Text;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Time;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Types;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variable;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Variant;
 use EugeneErg\StringParser\DataTransferObjects\Result;
+use EugeneErg\StringParser\DataTransferObjects\Root;
 use EugeneErg\StringParser\DataTransferObjects\Value;
 use LogicException;
 
 use function array_key_exists;
+use function assert;
 use function count;
 use function in_array;
 use function is_string;
@@ -90,13 +93,16 @@ readonly class Parser
         return (string) preg_replace(['{\'}', '{[{}]+}'], ['\'\'', '\'$0\''], $text);
     }
 
+    /**
+     * @param (callable(Variant, string): string)|null $makeKey
+     */
     public function typesToCases(Types $types, callable|null $makeKey = null): Cases
     {
         $variants = $types->getAllVariants();
         $cases = [];
 
-        foreach ($variants as $key => $variant) {
-            $key = $makeKey === null ? $key : $makeKey($variant, (string) $key);
+        foreach ($variants as $intKey => $variant) {
+            $key = $makeKey === null ? (string) $intKey : $makeKey($variant, (string) $intKey);
             $cases[$key] = $variant->cases;
         }
 
@@ -121,11 +127,16 @@ readonly class Parser
 
     private function getStructure(string $formatMessage): Result
     {
-        return (new \EugeneErg\StringParser\Parser())->parse(require $this->parserPath, $formatMessage);
+        $root = require $this->parserPath;
+        assert($root instanceof Root);
+
+        return (new \EugeneErg\StringParser\Parser())->parse($root, $formatMessage);
     }
 
     /**
      * @param array<Result|Value> $children
+     *
+     * @return ICUTypeInterface[]
      */
     private function parsePattern(array $children): array
     {
@@ -134,15 +145,22 @@ readonly class Parser
 
         foreach ($children as $child) {
             if ($child->name === self::PATTERN || $child->name === self::QUOTA) {
+                assert($child instanceof Value);
                 $message .= $child->value;
             } elseif ($child->name === self::TEXT) {
+                assert($child instanceof Result);
+
                 if ($message !== '') {
                     $result[] = $this->createClass(self::PATTERN, $message);
                     $message = '';
                 }
 
-                $result[] = $this->createClass(self::TEXT, implode('', array_column($child->children, 'value')));
+                /** @var list<Value> $textValues */
+                $textValues = $child->children;
+                $result[] = $this->createClass(self::TEXT, implode('', array_map(static fn (Value $v) => $v->value, $textValues)));
             } elseif ($child->name === self::OBJECT || $child->name === self::VARIABLE) {
+                assert($child instanceof Result);
+
                 if ($message !== '') {
                     $result[] = $this->createClass(self::PATTERN, $message);
                     $message = '';
@@ -161,11 +179,25 @@ readonly class Parser
 
     private function parseClass(Result $class): ICUTypeInterface
     {
-        return match (count($class->children)) {
-            1 => $this->createClass(self::VARIABLE, $class->children[0]->value),
-            2, 3 => $this->createClass($class->children[1]->value, $class->children[0]->value, $class->children[2] ?? null),
-            default => throw new LogicException('Unexpected structure.'),
-        };
+        $children = $class->children;
+        $cnt = count($children);
+
+        if ($cnt === 1) {
+            assert($children[0] instanceof Value);
+
+            return $this->createClass(self::VARIABLE, $children[0]->value);
+        }
+
+        if ($cnt === 2 || $cnt === 3) {
+            assert($children[0] instanceof Value);
+            assert($children[1] instanceof Value);
+            $opts = $children[2] ?? null;
+            assert($opts === null || $opts instanceof Result);
+
+            return $this->createClass($children[1]->value, $children[0]->value, $opts);
+        }
+
+        throw new LogicException('Unexpected structure.');
     }
 
     private function createClass(string $type, string $value, Result|null $options = null): ICUTypeInterface
@@ -173,6 +205,9 @@ readonly class Parser
         return $this->classes[$type]::create($value, $options === null ? [] : $this->parseOptions($options, $type));
     }
 
+    /**
+     * @return array<string, ICUTypeInterface[]|int>|ICUTypeInterface[]|string[]
+     */
     private function parseOptions(Result $options, string $type = ''): array
     {
         return match ($options->name) {
@@ -184,27 +219,28 @@ readonly class Parser
     }
 
     /**
-     * @param Value[] $children
+     * @param array<Result|Value> $children
      *
      * @return string[]
      */
     private function getSkeletonOptions(array $children): array
     {
-        return array_merge(['::'], array_map(static fn (Value $value) => $value->value, $children));
+        $values = [];
+
+        foreach ($children as $child) {
+            assert($child instanceof Value);
+            $values[] = $child->value;
+        }
+
+        return array_merge(['::'], $values);
     }
 
     /**
      * Parse nested plural/select options.
      *
-     * Handles the optional "offset:N" token that precedes plural/selectordinal
-     * branch keys:
-     *   {n, plural, offset:2 one {you and # other} other {you and # others}}
-     *
-     * The StringParser grammar delivers offset:N either as a dedicated child
-     * whose key value matches /^offset:(\d+)$/, or as a key-only child with
-     * key "offset" followed by a numeric value child.  Both forms are handled.
-     *
      * @param array<Result|Value> $children
+     *
+     * @return array<string, ICUTypeInterface[]|int>
      */
     private function getNestedOptions(array $children, string $type = ''): array
     {
@@ -212,6 +248,8 @@ readonly class Parser
         $supportsOffset = in_array($type, self::OFFSET_TYPES, true);
 
         foreach ($children as $child) {
+            assert($child instanceof Result);
+            assert($child->children[0] instanceof Value);
             $key = $child->children[0]->value;
 
             // offset:N as a single token, e.g. key = "offset:2"
@@ -225,6 +263,7 @@ readonly class Parser
                 throw new LogicException('Duplicate option key');
             }
 
+            assert($child->children[1] instanceof Result);
             $result[$key] = $this->parsePattern($child->children[1]->children);
         }
 
@@ -233,6 +272,8 @@ readonly class Parser
 
     /**
      * @param array<Result|Value> $children
+     *
+     * @return ICUTypeInterface[]
      */
     private function getTemplateOptions(array $children): array
     {
@@ -241,13 +282,18 @@ readonly class Parser
 
         foreach ($children as $child) {
             if ($child->name === self::TEXT) {
+                assert($child instanceof Result);
+
                 if ($message !== '') {
                     $result[] = $this->createClass(self::PATTERN, $message);
                     $message = '';
                 }
 
-                $result[] = $this->createClass(self::TEXT, implode('', array_column($child->children, 'value')));
+                /** @var list<Value> $textChildren */
+                $textChildren = $child->children;
+                $result[] = $this->createClass(self::TEXT, implode('', array_map(static fn (Value $v) => $v->value, $textChildren)));
             } else {
+                assert($child instanceof Value);
                 $message .= $child->value;
             }
         }
@@ -260,7 +306,7 @@ readonly class Parser
     }
 
     /**
-     * @param array<string, array<class-string<AbstractSelect>, array<string, string|string[]>>> $cases
+     * @param array<string, array<string, array<string, string|string[]|null>>> $cases
      */
     private function createFromCases(array $cases): Pattern|AbstractSelect
     {
@@ -287,9 +333,8 @@ readonly class Parser
     }
 
     /**
-     * @param class-string<AbstractSelect> $class
-     * @param array<string|string[]> $classCases
-     * @param array<class-string<AbstractSelect>, array<string, string|string[]>> $cases
+     * @param array<string, string|string[]|null> $classCases
+     * @param array<string, array<string, array<string, string|string[]|null>>> $cases
      */
     private function createSelect(string $class, string $name, array $classCases, array $cases): AbstractSelect
     {

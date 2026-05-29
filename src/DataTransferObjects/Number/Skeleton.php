@@ -62,7 +62,7 @@ final readonly class Skeleton implements Stringable
             throw new InvalidArgumentException('Skeleton: unit-width-full-name is only valid with Currency or MeasureUnit format.');
         }
 
-        if ($precision === Precision::CurrencyStandard || $precision === Precision::CurrencyCash && !$format instanceof Currency) {
+        if (($precision === Precision::CurrencyStandard || $precision === Precision::CurrencyCash) && !$format instanceof Currency) {
             throw new InvalidArgumentException('Skeleton: precision-currency-* is only valid with a Currency format.');
         }
 
@@ -130,7 +130,6 @@ final readonly class Skeleton implements Stringable
 
             if ($idx !== false) {
                 $tokens[$idx] = '%x100';
-                $tokens = array_values($tokens);
             }
         } elseif ($this->scale !== 1.0) {
             $tokens[] = 'scale/' . self::formatFloat($this->scale);
@@ -185,6 +184,7 @@ final readonly class Skeleton implements Stringable
      */
     public static function createFromOptions(array $tokens): self
     {
+        /** @var array{format?: Currency|Format|MeasureUnit, notation?: Notation|NumberNotation, sign?: Sign, unitWidth?: UnitWidth, precision?: Precision|PrecisionFraction|PrecisionIncrement|PrecisionSignificant, grouping?: Grouping, scale?: float, integerWidth?: IntegerWidth, roundingMode?: RoundingMode, decimalSeparator?: DecimalSeparator, numberingSystem?: NumberingSystem} $args */
         $args = [];
 
         foreach ($tokens as $token) {
@@ -233,6 +233,9 @@ final readonly class Skeleton implements Stringable
 
     /**
      * @param array<string, mixed> $args
+     */
+    /**
+     * @param array{format?: Currency|Format|MeasureUnit, notation?: Notation|NumberNotation, sign?: Sign, unitWidth?: UnitWidth, precision?: Precision|PrecisionFraction|PrecisionIncrement|PrecisionSignificant, grouping?: Grouping, scale?: float, integerWidth?: IntegerWidth, roundingMode?: RoundingMode, decimalSeparator?: DecimalSeparator, numberingSystem?: NumberingSystem} $args
      */
     private static function applyToken(string $token, array &$args): void
     {
@@ -523,6 +526,8 @@ final readonly class Skeleton implements Stringable
         $stem = $parts[0];
         $body = substr($stem, 1);
         preg_match('/\\A(0*)([#]*)(\\*)?\\z/', $body, $m);
+
+        /** @var array{0: string, 1: string, 2: string, 3?: string} $m */
         $minFraction = strlen($m[1]);
         $unlimited = isset($m[3]) && $m[3] === '*';
         $maxFraction = $unlimited ? null : ($minFraction + strlen($m[2]));
@@ -535,6 +540,7 @@ final readonly class Skeleton implements Stringable
             if ($opt === 'w') {
                 $hideIfWhole = true;
             } elseif (preg_match('/\\A(@+)([#]*)(\\*|[rs])?\\z/', $opt, $sm)) {
+                /** @var array{0: string, 1: string, 2: string, 3?: string} $sm */
                 $minSig = strlen($sm[1]);
                 $wildcard = isset($sm[3]) && $sm[3] === '*';
                 $maxSig = $wildcard ? null : ($minSig + strlen($sm[2]));
@@ -559,6 +565,8 @@ final readonly class Skeleton implements Stringable
         $stem = $parts[0];
         $hideIfWhole = isset($parts[1]) && $parts[1] === 'w';
         preg_match('/\\A(@+)([#]*)(\\*)?\\z/', $stem, $m);
+
+        /** @var array{0: string, 1: string, 2: string, 3?: string} $m */
         $minDigits = strlen($m[1]);
         $unlimited = isset($m[3]) && $m[3] === '*';
         $maxDigits = $unlimited ? null : ($minDigits + strlen($m[2]));
@@ -577,6 +585,7 @@ final readonly class Skeleton implements Stringable
         }
 
         preg_match('/\\A(#*)(0*)\\z/', $option, $m);
+        /** @var array{0: string, 1: string, 2: string} $m */
 
         return new IntegerWidth(zeroFillTo: strlen($m[2]), truncateAt: strlen($m[2]) + strlen($m[1]));
     }

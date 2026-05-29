@@ -23,7 +23,7 @@ final readonly class Types implements Stringable
     }
 
     /**
-     * @param array<class-string<AbstractSelect>, array<string, string|string[]|null>> $cases
+     * @param array<string, array<string, string|string[]|null>> $cases
      *
      * @return Variant[]
      */

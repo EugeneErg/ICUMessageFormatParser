@@ -52,6 +52,7 @@ final readonly class SelectOrdinal extends AbstractSelect
      */
     public static function create(string $value, array $options = []): self
     {
+        /** @var array{other?: Types, zero?: Types, one?: Types, two?: Types, few?: Types, many?: Types, numbers?: array<string, Types>, offset?: int} $arguments */
         $arguments = [];
         $argumentNames = ['zero', 'one', 'two', 'few', 'many', 'other'];
 
@@ -62,7 +63,9 @@ final readonly class SelectOrdinal extends AbstractSelect
 
         foreach ($argumentNames as $argumentName) {
             if (isset($options[$argumentName])) {
-                $arguments[$argumentName] = (new Types($options[$argumentName]))->replaceVariableName('#', $value);
+                /** @var ICUTypeInterface[] $optionValue */
+                $optionValue = $options[$argumentName];
+                $arguments[$argumentName] = (new Types($optionValue))->replaceVariableName('#', $value);
                 unset($options[$argumentName]);
             }
         }
@@ -72,10 +75,25 @@ final readonly class SelectOrdinal extends AbstractSelect
                 throw new LogicException('Invalid option "' . $key . '"');
             }
 
+            /** @var ICUTypeInterface[] $option */
             $arguments['numbers'][substr($key, 1)] = (new Types($option))->replaceVariableName('#', $value);
         }
 
-        return new self($value, ...$arguments);
+        if (!isset($arguments['other'])) {
+            $arguments['other'] = new Types();
+        }
+
+        return new self(
+            value: $value,
+            other: $arguments['other'],
+            zero: $arguments['zero'] ?? null,
+            one: $arguments['one'] ?? null,
+            two: $arguments['two'] ?? null,
+            few: $arguments['few'] ?? null,
+            many: $arguments['many'] ?? null,
+            numbers: $arguments['numbers'] ?? [],
+            offset: $arguments['offset'] ?? 0,
+        );
     }
 
     public function replaceRecursive(array $replace): self

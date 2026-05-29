@@ -7,6 +7,8 @@ namespace EugeneErg\ICUMessageFormatParser\DataTransferObjects;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeInterface;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Contracts\ICUTypeMergeInterface;
 
+use function assert;
+
 final readonly class Pattern implements ICUTypeInterface, ICUTypeMergeInterface
 {
     public function __construct(public string $value)
@@ -35,6 +37,8 @@ final readonly class Pattern implements ICUTypeInterface, ICUTypeMergeInterface
 
     public function merge(ICUTypeInterface $next): array
     {
+        assert($next instanceof self || $next instanceof Text);
+
         return [
             new self($this->value . $next->value),
         ];

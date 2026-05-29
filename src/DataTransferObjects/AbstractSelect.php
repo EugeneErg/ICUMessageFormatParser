@@ -41,7 +41,7 @@ abstract readonly class AbstractSelect implements ICUTypeInterface, ICUTypeVaria
 
         foreach ($options as $name => $option) {
             $subCases = $cases;
-            $subCases[static::getName()][$this->value] = $name;
+            $subCases[static::getName()][$this->value] = (string) $name;
             $result[] = $option->getAllVariants($subCases);
         }
 

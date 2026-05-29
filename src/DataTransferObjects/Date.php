@@ -25,6 +25,7 @@ final readonly class Date implements ICUTypeInterface, ICUTypeVariableInterface
 
     public static function create(string $value, array $options = []): self
     {
+        /** @var array<Pattern|string> $options */
         return new self($value, self::makeOptions($options));
     }
 
@@ -51,7 +52,12 @@ final readonly class Date implements ICUTypeInterface, ICUTypeVariableInterface
             }
         }
 
-        return new Message(...$options);
+        $messageArgs = array_map(
+            static fn (Pattern|string $o): Pattern => is_string($o) ? new Pattern($o) : $o,
+            $options,
+        );
+
+        return new Message(...$messageArgs);
     }
 
     public function getAllVariants(array $cases = []): array
