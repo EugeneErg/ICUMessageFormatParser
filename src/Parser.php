@@ -246,21 +246,30 @@ readonly class Parser
     {
         $result = [];
         $supportsOffset = in_array($type, self::OFFSET_TYPES, true);
+        $firstKey = true;
 
         foreach ($children as $child) {
             assert($child instanceof Result);
             assert($child->children[0] instanceof Value);
             $key = $child->children[0]->value;
 
-            // offset:N as a single token, e.g. key = "offset:2"
-            if ($supportsOffset && preg_match('/\\Aoffset:(\\d+)\\z/', $key, $m)) {
+            // StringParser glues "offset:N" with the following key (e.g. "offset:2one")
+            // because its exclude mechanism strips spaces instead of stopping.
+            // We split them here on the first option of offset-supporting types.
+            if ($supportsOffset && $firstKey && preg_match('/\\Aoffset:(\\d+)(.+)\\z/', $key, $m)) {
                 $result['offset'] = (int) $m[1];
+                $key = $m[2];
+            } elseif ($supportsOffset && $firstKey && preg_match('/\\Aoffset:(\\d+)\\z/', $key, $m)) {
+                $result['offset'] = (int) $m[1];
+                $firstKey = false;
 
                 continue;
             }
 
+            $firstKey = false;
+
             if (isset($result[$key])) {
-                throw new LogicException('Duplicate option key');
+                throw new LogicException('Duplicate option key "' . $key . '"');
             }
 
             assert($child->children[1] instanceof Result);

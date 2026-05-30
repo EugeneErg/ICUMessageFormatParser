@@ -28,7 +28,7 @@ final class NumberTest extends TestCase
     public function withSkeletonSuffix(): void
     {
         $n = Number::create('price', ['::', 'currency/EUR']);
-        $this->assertSame('{price, number, currency/EUR}', (string) $n);
+        $this->assertSame('{price, number, ::currency/EUR}', (string) $n);
     }
 
     #[Test]

@@ -13,21 +13,30 @@ use function is_string;
 
 final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterface
 {
-    public function __construct(public string $value, public Skeleton|Message $options)
+    public function __construct(public string $value, public Skeleton|Message $options, public bool $fromExplicitSkeleton = false)
     {
     }
 
     public function __toString(): string
     {
-        $options = (string) $this->options;
+        $optionStr = (string) $this->options;
 
-        return '{' . $this->value . ', number' . ($options === '' ? '' : ', ' . $options) . '}';
+        // When Skeleton was created from explicit '::' syntax, ensure '::' prefix is preserved
+        if ($this->fromExplicitSkeleton && $this->options instanceof Skeleton) {
+            if (!str_starts_with($optionStr, '::')) {
+                $optionStr = '::' . $optionStr;
+            }
+        }
+
+        return '{' . $this->value . ', number' . ($optionStr === '' ? '' : ', ' . $optionStr) . '}';
     }
 
     public static function create(string $value, array $options = []): self
     {
         /** @var array<Pattern|string|Text> $options */
-        return new self($value, self::makeOptions($options));
+        $fromExplicitSkeleton = isset($options[0]) && $options[0] === '::';
+
+        return new self($value, self::makeOptions($options), $fromExplicitSkeleton);
     }
 
     /**

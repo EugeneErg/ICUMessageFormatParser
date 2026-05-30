@@ -36,7 +36,7 @@ final readonly class Skeleton implements Stringable
 
     public function __construct(
         public Format|Currency|MeasureUnit $format = Format::Decimal,
-        public NumberNotation|Notation $notation = new StandardNotation(),
+        public NumberNotation|Notation $notation = Notation::Standard,
         public Sign $sign = Sign::Auto,
         public UnitWidth $unitWidth = UnitWidth::Short,
         Precision|PrecisionFraction|PrecisionSignificant|PrecisionIncrement|null $precision = null,
@@ -240,37 +240,25 @@ final readonly class Skeleton implements Stringable
     private static function applyToken(string $token, array &$args): void
     {
         if ($token === 'notation-simple') {
-            $args['notation'] = new NotationSimple();
+            $args['notation'] = Notation::NotationSimple;
 
             return;
         }
 
         if ($token === 'standard') {
-            $args['notation'] = new StandardNotation();
+            $args['notation'] = Notation::Standard;
 
             return;
         }
 
-        if ($token === 'K') {
-            $args['notation'] = new CompactShortNotation();
+        if ($token === 'K' || $token === 'compact-short') {
+            $args['notation'] = Notation::CompactShort;
 
             return;
         }
 
-        if ($token === 'KK') {
-            $args['notation'] = new CompactLongNotation();
-
-            return;
-        }
-
-        if ($token === 'compact-short') {
-            $args['notation'] = new CompactShortNotation();
-
-            return;
-        }
-
-        if ($token === 'compact-long') {
-            $args['notation'] = new CompactLongNotation();
+        if ($token === 'KK' || $token === 'compact-long') {
+            $args['notation'] = Notation::CompactLong;
 
             return;
         }
@@ -309,7 +297,7 @@ final readonly class Skeleton implements Stringable
                 : null;
             $args['notation'] = $isEngineering
                 ? new EngineeringNotation($opts ?? new ScientificOptions())
-                : new ScientificNotation($opts);
+                : ($opts === null ? Notation::Scientific : new ScientificNotation($opts));
 
             return;
         }
@@ -649,7 +637,12 @@ final readonly class Skeleton implements Stringable
             return new PrecisionFraction(minFraction: 0, maxFraction: 2);
         }
 
-        if ($this->notation instanceof ScientificNotation || $this->notation instanceof EngineeringNotation) {
+        if (
+            $this->notation instanceof ScientificNotation
+            || $this->notation instanceof EngineeringNotation
+            || $this->notation === Notation::Scientific
+            || $this->notation === Notation::Engineering
+        ) {
             return new PrecisionFraction(minFraction: 6, maxFraction: 6);
         }
 

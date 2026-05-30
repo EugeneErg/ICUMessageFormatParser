@@ -475,15 +475,14 @@ new Skeleton(new MeasureUnit('speed-kilometer-per-hour', 'duration-hour'));
 
 ```php
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\{
-    StandardNotation, NotationSimple, CompactShortNotation,
-    CompactLongNotation, ScientificNotation, EngineeringNotation, ScientificOptions,
+    Notation, ScientificNotation, EngineeringNotation, ScientificOptions,
 };
 
-new Skeleton(notation: new StandardNotation());       // default, emits nothing
-new Skeleton(notation: new NotationSimple());         // "::notation-simple"
-new Skeleton(notation: new CompactShortNotation());   // "::compact-short"
-new Skeleton(notation: new CompactLongNotation());    // "::compact-long"
-new Skeleton(notation: new ScientificNotation());     // "::scientific"
+new Skeleton(notation: Notation::Standard);       // default, emits nothing
+new Skeleton(notation: Notation::NotationSimple); // "::notation-simple"
+new Skeleton(notation: Notation::CompactShort);   // "::compact-short"
+new Skeleton(notation: Notation::CompactLong);    // "::compact-long"
+new Skeleton(notation: new ScientificNotation()); // "::scientific"
 new Skeleton(notation: new EngineeringNotation(new ScientificOptions())); // "::engineering"
 
 // Scientific with options

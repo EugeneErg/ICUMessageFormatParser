@@ -10,7 +10,7 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Format;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Grouping;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\IntegerWidth;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\MeasureUnit;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NotationSimple;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Notation;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NumberingSystem;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Precision;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionFraction;
@@ -20,7 +20,6 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\RoundingMode;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\ScientificOptions;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Sign;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
-use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\StandardNotation;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -151,8 +150,8 @@ final class SkeletonTest extends TestCase
     {
         $byStandard = self::parse('standard');
         $bySimple = self::parse('notation-simple');
-        $this->assertInstanceOf(StandardNotation::class, $byStandard->notation);
-        $this->assertInstanceOf(NotationSimple::class, $bySimple->notation);
+        $this->assertEquals(Notation::Standard, $byStandard->notation);
+        $this->assertEquals(Notation::NotationSimple, $bySimple->notation);
         $this->assertSame('', (string) $byStandard);
         $this->assertSame('::notation-simple', (string) $bySimple);
     }

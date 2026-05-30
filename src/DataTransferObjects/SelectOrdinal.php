@@ -123,14 +123,15 @@ final readonly class SelectOrdinal extends AbstractSelect
         ];
         $result = [];
 
+        // Numeric exact-match cases (=N) come first per ICU serialization convention
+        foreach ($this->numbers as $key => $value) {
+            $result['=' . $key] = $value;
+        }
+
         foreach ($namedOptions as $key => $value) {
             if ($value !== null) {
                 $result[$key] = $value;
             }
-        }
-
-        foreach ($this->numbers as $key => $value) {
-            $result['=' . $key] = $value;
         }
 
         $result['other'] = $this->other;

@@ -44,8 +44,11 @@ final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
             return implode(' ', $options);
         }
 
-        if (count($options) === 1 && is_string($options[0])) {
-            $format = DateTimeFormat::tryFrom(trim($options[0]));
+        $firstOption = $options[0];
+        $firstValue = $firstOption instanceof Pattern ? $firstOption->value : $firstOption;
+
+        if (count($options) === 1) {
+            $format = DateTimeFormat::tryFrom(trim($firstValue));
 
             if ($format !== null) {
                 return $format;

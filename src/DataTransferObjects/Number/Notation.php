@@ -9,7 +9,7 @@ enum Notation: string
     /**
      * Programmatic API name (ICU4J/ICU4C).
      */
-    case Standard = 'standard';
+    case Standard = '';
 
     /**
      * Skeleton token form — same meaning as Standard.
