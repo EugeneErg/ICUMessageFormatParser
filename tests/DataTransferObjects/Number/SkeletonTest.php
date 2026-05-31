@@ -78,7 +78,7 @@ final class SkeletonTest extends TestCase
             'permille' => ['permille', 'permille'],
             'base-unit' => ['base-unit', 'base-unit'],
             'scientific format' => ['scientific', '::scientific'],
-            'currency USD → short form' => ['currency/USD', 'currency'],
+            'currency USD' => ['currency/USD', 'currency/USD'],
             'currency EUR' => ['currency/EUR', 'currency/EUR'],
             'currency CAD' => ['currency/CAD', 'currency/CAD'],
             '%x100 concise' => ['%x100', '%x100'],
@@ -278,7 +278,7 @@ final class SkeletonTest extends TestCase
         return [
             'precision-integer' => ['precision-integer', '::precision-integer'],
             'precision-unlimited' => ['precision-unlimited', '::precision-unlimited'],
-            'precision-currency-standard' => ['currency/USD precision-currency-standard', 'currency'],
+            'precision-currency-standard' => ['currency/USD precision-currency-standard', 'currency/USD'],
             'precision-currency-cash' => ['currency/USD precision-currency-cash', '::currency/USD precision-currency-cash'],
         ];
     }
@@ -722,10 +722,11 @@ final class SkeletonTest extends TestCase
     #[Test]
     public function tryCreateFromPatternCurrency(): void
     {
+        // 'currency' (no code) is a locale-aware named style: each locale uses its own
+        // currency symbol (en_US→$, de_DE→€, ja_JP→¥). It is NOT equivalent to
+        // '::currency/USD' which always formats as USD regardless of locale.
         $sk = Skeleton::tryCreateFromPattern(new Pattern('currency'));
-        $this->assertNotNull($sk);
-        $this->assertInstanceOf(Currency::class, $sk->format);
-        $this->assertSame('USD', $sk->format->value);
+        $this->assertNull($sk);
     }
 
     #[Test]

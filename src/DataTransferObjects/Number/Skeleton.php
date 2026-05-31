@@ -165,10 +165,6 @@ final readonly class Skeleton implements Stringable
         }
 
         if ($canBeSimple && count($tokens) === 1) {
-            if ($tokens[0] === 'currency/USD') {
-                return 'currency';
-            }
-
             return $tokens[0];
         }
 
@@ -204,9 +200,10 @@ final readonly class Skeleton implements Stringable
     {
         $option = trim($pattern->value);
 
-        if ($option === 'currency') {
-            return new self(new Currency());
-        }
+        // 'currency' (no code) is a locale-aware named style: each locale uses its own
+        // currency symbol (en_US→$, de_DE→€, ja_JP→¥). It is NOT equivalent to
+        // '::currency/USD' which always formats as USD regardless of locale.
+        // Keeping it as a Message preserves this locale-dependent behaviour.
 
         if ($option === '%x100') {
             return new self(format: Format::Percent, scale: 100.0);

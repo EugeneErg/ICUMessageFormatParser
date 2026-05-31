@@ -69,7 +69,9 @@ final readonly class Number implements ICUTypeInterface, ICUTypeVariableInterfac
         }
 
         $messageArgs = array_map(
-            static fn (Pattern|string|Text $o): Pattern|Text => is_string($o) ? new Pattern($o) : $o,
+            static fn (Pattern|string|Text $o): Pattern|Text => is_string($o)
+                ? new Pattern($o)
+                : ($o instanceof Pattern ? new Pattern(trim($o->value)) : $o),
             $options,
         );
 
