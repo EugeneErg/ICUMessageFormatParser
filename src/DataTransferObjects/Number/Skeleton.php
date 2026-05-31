@@ -103,7 +103,7 @@ final readonly class Skeleton implements Stringable
         }
 
         if ($this->sign !== Sign::Auto) {
-            $tokens[] = $this->sign->value;
+            $tokens[] = $this->sign->shortValue();
             $canBeSimple = false;
         }
 
@@ -121,7 +121,7 @@ final readonly class Skeleton implements Stringable
         }
 
         if ($this->grouping !== Grouping::Auto) {
-            $tokens[] = $this->grouping->value;
+            $tokens[] = $this->grouping->shortValue();
             $canBeSimple = false;
         }
 

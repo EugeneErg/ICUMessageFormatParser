@@ -36,8 +36,13 @@ enum Sign: string
     {
         return match ($this) {
             self::Always => '+!',
-            self::Auto => '+?',
             self::Never => '+_',
+            self::ExceptZero => '+?',
+            self::Accounting => '()',
+            self::AccountingAlways => '()!',
+            self::AccountingExceptZero => '()?',
+            self::AccountingNegative => '()-',
+            self::Negative => '+-',
             default => $this->value,
         };
     }

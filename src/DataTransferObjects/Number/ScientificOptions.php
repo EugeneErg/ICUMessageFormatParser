@@ -37,7 +37,7 @@ final readonly class ScientificOptions implements Stringable
         $options = [];
 
         if ($this->exponentSign !== null && $this->exponentSign !== Sign::Auto) {
-            $options[] = '/' . $this->exponentSign->value;
+            $options[] = '/' . $this->exponentSign->shortValue();
         }
 
         if ($this->minExponentDigits > 1) {

@@ -11,4 +11,14 @@ enum Grouping: string
     case Auto = 'group-auto';
     case OnAligned = 'group-on-aligned';
     case Thousands = 'group-thousands';
+
+    public function shortValue(): string
+    {
+        return match ($this) {
+            self::Off => ',_',
+            self::Min2 => ',?',
+            self::OnAligned => ',!',
+            default => $this->value,
+        };
+    }
 }

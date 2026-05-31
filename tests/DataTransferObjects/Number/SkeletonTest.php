@@ -170,12 +170,12 @@ final class SkeletonTest extends TestCase
     {
         return [
             'scientific default' => ['scientific', '::scientific'],
-            'scientific sign-always' => ['scientific/sign-always', '::scientific/sign-always'],
+            'scientific sign-always' => ['scientific/sign-always', '::scientific/+!'],
             'scientific 2-digit exp' => ['scientific/*ee', '::scientific/*ee'],
-            'scientific sign-always 2-digit' => ['scientific/sign-always/*ee', '::scientific/sign-always/*ee'],
-            'engineering sign-always' => ['engineering/sign-always', '::engineering/sign-always'],
-            'E+! → scientific sign-always' => ['E+!0', '::scientific/sign-always'],
-            'EE+!0 → engineering sign-always' => ['EE+!0', '::engineering/sign-always'],
+            'scientific sign-always 2-digit' => ['scientific/sign-always/*ee', '::scientific/+!/*ee'],
+            'engineering sign-always' => ['engineering/sign-always', '::engineering/+!'],
+            'E+! → scientific sign-always' => ['E+!0', '::scientific/+!'],
+            'EE+!0 → engineering sign-always' => ['EE+!0', '::engineering/+!'],
         ];
     }
 
@@ -192,7 +192,7 @@ final class SkeletonTest extends TestCase
     public function scientificOptionsToString(): void
     {
         $opts = new ScientificOptions(Sign::Always, 2);
-        $this->assertSame('/sign-always/*ee', (string) $opts);
+        $this->assertSame('/+!/*ee', (string) $opts);
     }
 
     #[DataProvider('provideSignRoundtripCases')]
@@ -209,22 +209,22 @@ final class SkeletonTest extends TestCase
     {
         return [
             'auto (default, no output)' => ['sign-auto', ''],
-            'always' => ['sign-always', '::sign-always'],
-            'never' => ['sign-never', '::sign-never'],
-            'accounting' => ['sign-accounting', '::sign-accounting'],
-            'accounting-always' => ['sign-accounting-always', '::sign-accounting-always'],
-            'except-zero' => ['sign-except-zero', '::sign-except-zero'],
-            'accounting-except-zero' => ['sign-accounting-except-zero', '::sign-accounting-except-zero'],
-            'negative' => ['sign-negative', '::sign-negative'],
-            'accounting-negative' => ['sign-accounting-negative', '::sign-accounting-negative'],
-            '+! → always' => ['+!', '::sign-always'],
-            '+_ → never' => ['+_', '::sign-never'],
-            '+? → except-zero' => ['+?', '::sign-except-zero'],
-            '() → accounting' => ['()', '::sign-accounting'],
-            '()! → accounting-always' => ['()!', '::sign-accounting-always'],
-            '()? → accounting-except-zero' => ['()?', '::sign-accounting-except-zero'],
-            '()- → accounting-negative' => ['()-', '::sign-accounting-negative'],
-            '+- → negative' => ['+-', '::sign-negative'],
+            'always' => ['sign-always', '::+!'],
+            'never' => ['sign-never', '::+_'],
+            'accounting' => ['sign-accounting', '::()'],
+            'accounting-always' => ['sign-accounting-always', '::()!'],
+            'except-zero' => ['sign-except-zero', '::+?'],
+            'accounting-except-zero' => ['sign-accounting-except-zero', '::()?'],
+            'negative' => ['sign-negative', '::+-'],
+            'accounting-negative' => ['sign-accounting-negative', '::()-'],
+            '+! → always' => ['+!', '::+!'],
+            '+_ → never' => ['+_', '::+_'],
+            '+? → except-zero' => ['+?', '::+?'],
+            '() → accounting' => ['()', '::()'],
+            '()! → accounting-always' => ['()!', '::()!'],
+            '()? → accounting-except-zero' => ['()?', '::()?'],
+            '()- → accounting-negative' => ['()-', '::()-'],
+            '+- → negative' => ['+-', '::+-'],
         ];
     }
 
@@ -441,13 +441,13 @@ final class SkeletonTest extends TestCase
     {
         return [
             'auto (default, no output)' => ['group-auto', ''],
-            'off' => ['group-off', '::group-off'],
-            'min2' => ['group-min2', '::group-min2'],
-            'on-aligned' => ['group-on-aligned', '::group-on-aligned'],
+            'off' => ['group-off', '::,_'],
+            'min2' => ['group-min2', '::,?'],
+            'on-aligned' => ['group-on-aligned', '::,!'],
             'thousands' => ['group-thousands', '::group-thousands'],
-            ',_ → off' => [',_', '::group-off'],
-            ',? → min2' => [',?', '::group-min2'],
-            ',! → on-aligned' => [',!', '::group-on-aligned'],
+            ',_ → off' => [',_', '::,_'],
+            ',? → min2' => [',?', '::,?'],
+            ',! → on-aligned' => [',!', '::,!'],
         ];
     }
 
@@ -707,15 +707,15 @@ final class SkeletonTest extends TestCase
     {
         return [
             'percent + fraction' => ['percent .00', '::percent .00'],
-            'currency + sign + width' => ['sign-always compact-short currency/GBP', '::currency/GBP compact-short sign-always'],
-            'scientific + sign-always + 2-digit' => ['scientific/sign-always/*ee', '::scientific/sign-always/*ee'],
+            'currency + sign + width' => ['sign-always compact-short currency/GBP', '::currency/GBP compact-short +!'],
+            'scientific + sign-always + 2-digit' => ['scientific/sign-always/*ee', '::scientific/+!/*ee'],
             'fraction + rounding' => ['.00 rounding-mode-half-up', '::.00 rounding-mode-half-up'],
             'measure + width + fraction' => ['measure-unit/length-meter unit-width-full-name .0#', '::measure-unit/length-meter unit-width-full-name .0#'],
-            'currency + grouping-off' => ['currency/EUR group-off', '::currency/EUR group-off'],
+            'currency + grouping-off' => ['currency/EUR group-off', '::currency/EUR ,_'],
             'scale + percent' => ['percent scale/100', '%x100'],
             'significant + rounding-mode' => ['@@@ rounding-mode-ceiling', '::@@@ rounding-mode-ceiling'],
             'integer-width + fraction' => ['integer-width/*00 .00', '::.00 00'],
-            'numbering-system + sign' => ['latin sign-always', '::sign-always latin'],
+            'numbering-system + sign' => ['latin sign-always', '::+! latin'],
         ];
     }
 
