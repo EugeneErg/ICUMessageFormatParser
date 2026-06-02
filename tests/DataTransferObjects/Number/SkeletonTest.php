@@ -21,6 +21,7 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\ScientificOption
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Sign;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
+use EugeneErg\ICUMessageFormatParser\Parser;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -777,5 +778,160 @@ final class SkeletonTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/Unknown skeleton token/');
         self::parse('totally-unknown-token-xyz');
+    }
+    // -----------------------------------------------------------------------
+    // Additional coverage for uncovered branches
+    // -----------------------------------------------------------------------
+
+    #[Test]
+    public function emptyTokenIsSkipped(): void
+    {
+        // createFromOptions with empty string token should not crash
+        $sk = Skeleton::createFromOptions(['', 'percent']);
+        $this->assertSame('percent', (string) $sk);
+    }
+
+    #[Test]
+    public function percentConciseToken(): void
+    {
+        // '%' concise form = percent
+        $sk = Skeleton::createFromOptions(['%']);
+        $this->assertSame('percent', (string) $sk);
+    }
+
+    #[Test]
+    public function dotConcisePrecisionToken(): void
+    {
+        // '.' = PrecisionFraction(0, 0)
+        $sk = Skeleton::createFromOptions(['.']);
+        // '.' precision serialises as '.' token; verify via roundtrip
+        $this->assertSame('{n, number, ::.}', (string) (new Parser())->parse('{n, number, ::.}'));
+    }
+
+    #[Test]
+    public function integerWidthConciseToken(): void
+    {
+        // 'integer-width/*000' normalises to concise '000' form
+        $sk = Skeleton::createFromOptions(['integer-width/*000']);
+        $this->assertSame('000', (string) $sk);
+    }
+
+    #[Test]
+    public function precisionSignificantMode(): void
+    {
+        // @@r = 2 significant digits with rounding mode r
+        $sk = Skeleton::createFromOptions(['@@r']);
+        $this->assertSame('::@@r', (string) $sk);
+    }
+
+    #[Test]
+    public function precisionSignificantModeS(): void
+    {
+        // @@s = 2 significant digits with rounding mode s (half-even)
+        $sk = Skeleton::createFromOptions(['@@s']);
+        $this->assertSame('::@@s', (string) $sk);
+    }
+
+    #[Test]
+    public function skeletonSerializesDefaultPrecision(): void
+    {
+        // Empty tokens = default skeleton = no precision token in output
+        $sk = Skeleton::createFromOptions([]);
+        $this->assertSame('', (string) $sk);
+    }
+
+    #[Test]
+    public function precisionIncrementToString(): void
+    {
+        $sk = Skeleton::createFromOptions(['precision-increment/0.05']);
+        $this->assertSame('::precision-increment/0.05', (string) $sk);
+    }
+
+    #[Test]
+    public function currencyToString(): void
+    {
+        $c = new Currency('EUR');
+        $this->assertSame('currency/EUR', (string) $c);
+    }
+
+    #[Test]
+    public function notationTryFromShortOrLong(): void
+    {
+        $this->assertSame(
+            Notation::Scientific,
+            Notation::tryFromShortOrLong('scientific'),
+        );
+        $this->assertSame(
+            Notation::Scientific,
+            Notation::tryFromShortOrLong('E'),
+        );
+        $this->assertNull(
+            Notation::tryFromShortOrLong('unknown'),
+        );
+    }
+
+    #[Test]
+    public function notationShortValue(): void
+    {
+        $n = Notation::Scientific;
+        $this->assertSame('E', $n->shortValue());
+        $n2 = Notation::Engineering;
+        $this->assertSame('EE', $n2->shortValue());
+        $n3 = Notation::CompactShort;
+        $this->assertSame('compact-short', $n3->shortValue());
+    }
+
+    #[Test]
+    public function signTryFromShortOrLong(): void
+    {
+        $this->assertSame(
+            Sign::Always,
+            Sign::tryFromShortOrLong('+!'),
+        );
+        $this->assertSame(
+            Sign::Always,
+            Sign::tryFromShortOrLong('sign-always'),
+        );
+        $this->assertNull(
+            Sign::tryFromShortOrLong('unknown'),
+        );
+    }
+
+    #[Test]
+    public function dotTokenPrecision(): void
+    {
+        // '.' = PrecisionFraction(min=0, max=0) - zero decimal places
+        $sk = Skeleton::createFromOptions(['.']);
+        $this->assertSame('::.', (string) $sk);
+    }
+
+    #[Test]
+    public function integerWidthStarTokenLong(): void
+    {
+        // 'integer-width/*000' long form -> concise '000'
+        $sk = Skeleton::createFromOptions(['integer-width/*000']);
+        $this->assertSame('000', (string) $sk);
+        $this->assertNotNull($sk->integerWidth);
+        $this->assertNull($sk->integerWidth->truncateAt);
+        $this->assertSame(3, $sk->integerWidth->zeroFillTo);
+    }
+
+    #[Test]
+    public function precisionFractionWithSignificantMode(): void
+    {
+        // '.0/@@r' = min 1 fraction + min 2 sig digits with rounding mode 'r'
+        $sk = Skeleton::createFromOptions(['.0/@@r']);
+        $this->assertSame('::.0/@@r', (string) $sk);
+    }
+
+    #[Test]
+    public function precisionIncrementFromToken(): void
+    {
+        $sk = Skeleton::createFromOptions(['precision-increment/0.05']);
+        $this->assertSame('::precision-increment/0.05', (string) $sk);
+        // Also verify PrecisionIncrement::__toString directly
+        $pi = $sk->precision;
+        $this->assertInstanceOf(PrecisionIncrement::class, $pi);
+        $this->assertSame('precision-increment/0.05', (string) $pi);
     }
 }

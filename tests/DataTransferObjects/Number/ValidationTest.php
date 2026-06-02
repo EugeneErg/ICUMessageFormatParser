@@ -11,6 +11,7 @@ use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\MeasureUnit;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\NumberingSystem;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Precision;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionFraction;
+use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionFractional;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionIncrement;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\PrecisionSignificant;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Number\Skeleton;
@@ -191,5 +192,13 @@ final class ValidationTest extends TestCase
     {
         $sk = new Skeleton(format: new Currency('USD'), precision: Precision::CurrencyStandard);
         $this->assertSame(Precision::CurrencyStandard, $sk->precision);
+    }
+
+    #[Test]
+    public function precisionFractionalConstructor(): void
+    {
+        // PrecisionFractional is a simple value object (covers constructor)
+        $p = new PrecisionFractional(3);
+        $this->assertSame(3, $p->value);
     }
 }

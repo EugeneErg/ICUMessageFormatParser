@@ -191,6 +191,17 @@ final class PluralTest extends TestCase
         $this->assertStringContainsString('offset:5', (string) $p);
     }
 
+    #[Test]
+    public function createWithoutOtherDefaultsToEmptyTypes(): void
+    {
+        // When 'other' is not provided, it defaults to empty Types
+        $p = Plural::create('n', [
+            'one' => [new Pattern('item')],
+        ]);
+        $this->assertSame('other', 'other'); // Plural was created without exception
+        $this->assertSame('{n, plural, one {item} other {}}', (string) $p);
+    }
+
     private function makePlural(): Plural
     {
         return Plural::create('count', [

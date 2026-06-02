@@ -13,6 +13,7 @@ final readonly class PrecisionSignificant implements Stringable
         public int $minDigits,
         public int|null $maxDigits = null,
         public bool $trailingZeroHideIfWhole = false,
+        public string|null $significantDigitsMode = null,
     ) {
         if ($minDigits < 1) {
             throw new InvalidArgumentException(
@@ -35,6 +36,10 @@ final readonly class PrecisionSignificant implements Stringable
             : str_repeat('#', max(0, $this->maxDigits - $this->minDigits));
 
         $stem = $atSigns . $hashes;
+
+        if ($this->significantDigitsMode !== null) {
+            $stem .= $this->significantDigitsMode;
+        }
 
         if ($this->trailingZeroHideIfWhole) {
             $stem .= '/w';

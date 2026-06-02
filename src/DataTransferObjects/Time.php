@@ -56,7 +56,7 @@ final readonly class Time implements ICUTypeInterface, ICUTypeVariableInterface
         }
 
         $messageArgs = array_map(
-            static fn (Pattern|string $o): Pattern => is_string($o) ? new Pattern($o) : $o,
+            static fn (Pattern|string $o): Pattern => is_string($o) ? new Pattern($o) : new Pattern(trim($o->value)),
             $options,
         );
 

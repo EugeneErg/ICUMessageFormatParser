@@ -6,6 +6,7 @@ namespace Tests\DataTransferObjects;
 
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\Pattern;
 use EugeneErg\ICUMessageFormatParser\DataTransferObjects\SelectOrdinal;
+use LogicException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -96,5 +97,24 @@ final class SelectOrdinalTest extends TestCase
         $s = SelectOrdinal::create('n', ['offset' => 2, 'other' => [new Pattern('#th')]]);
         $replaced = $s->replaceRecursive([]);
         $this->assertSame(2, $replaced->offset);
+    }
+
+    #[Test]
+    public function createWithoutOtherDefaultsToEmpty(): void
+    {
+        $so = SelectOrdinal::create('n', [
+            'one' => [new Pattern('st')],
+        ]);
+        $this->assertStringContainsString('other {}', (string) $so);
+    }
+
+    #[Test]
+    public function createWithInvalidKeyThrows(): void
+    {
+        $this->expectException(LogicException::class);
+        SelectOrdinal::create('n', [
+            'invalid-key' => [new Pattern('x')],
+            'other' => [new Pattern('y')],
+        ]);
     }
 }

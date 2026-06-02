@@ -402,12 +402,6 @@ final readonly class Skeleton implements Stringable
             return;
         }
 
-        if ($token === '.') {
-            $args['precision'] = new PrecisionFraction(0, 0);
-
-            return;
-        }
-
         if (str_starts_with($token, '@')) {
             $args['precision'] = self::parseSignificantDigits($token);
 
@@ -459,13 +453,6 @@ final readonly class Skeleton implements Stringable
 
         if (str_starts_with($token, 'integer-width/')) {
             $args['integerWidth'] = self::parseIntegerWidth(substr($token, 14));
-
-            return;
-        }
-
-        if (str_starts_with($token, 'integer-width/*')) {
-            $zeros = substr($token, 15);
-            $args['integerWidth'] = IntegerWidth::fromConcise(strlen($zeros));
 
             return;
         }
@@ -549,17 +536,20 @@ final readonly class Skeleton implements Stringable
         $parts = explode('/', $token, 2);
         $stem = $parts[0];
         $hideIfWhole = isset($parts[1]) && $parts[1] === 'w';
-        preg_match('/\\A(@+)([#]*)(\\*)?\\z/', $stem, $m);
+        preg_match('/\\A(@+)([#]*)(\\*|[rs])?\\z/', $stem, $m);
 
         /** @var array{0: string, 1: string, 2: string, 3?: string} $m */
         $minDigits = strlen($m[1]);
         $unlimited = isset($m[3]) && $m[3] === '*';
         $maxDigits = $unlimited ? null : ($minDigits + strlen($m[2]));
+        $mode = $m[3] ?? null;
+        $sigMode = ($mode === 's' || $mode === 'r') ? $mode : null;
 
         return new PrecisionSignificant(
             minDigits: $minDigits,
             maxDigits: $maxDigits,
             trailingZeroHideIfWhole: $hideIfWhole,
+            significantDigitsMode: $sigMode,
         );
     }
 

@@ -85,4 +85,53 @@ final class VariantTest extends TestCase
         $m = $a->merge($b);
         $this->assertSame('X', (string) $m->types);
     }
+
+    #[Test]
+    public function mergeVariantsArrayWithArray(): void
+    {
+        // array+array: produces union of unique values (mergeCases lines 106-109)
+        $cls = 'EugeneErg\\ICUMessageFormatParser\\DataTransferObjects\\Select';
+        $t = new Types([new Pattern('x')]);
+        $v1 = new Variant(types: $t, cases: [$cls => ['g' => ['male', 'female']]]);
+        $v2 = new Variant(types: $t, cases: [$cls => ['g' => ['other', 'male']]]);
+        $result = $v1->merge($v2);
+        $this->assertInstanceOf(Variant::class, $result);
+        // merged: male+female+other (unique)
+        $this->assertIsArray($result->cases[$cls]['g']);
+    }
+
+    #[Test]
+    public function mergeVariantsStringConflictsWithArray(): void
+    {
+        // caseA=string, value IS in caseBArray -> null (lines 85-90)
+        $cls = 'EugeneErg\\ICUMessageFormatParser\\DataTransferObjects\\Select';
+        $t = new Types([new Pattern('x')]);
+        $v1 = new Variant(types: $t, cases: [$cls => ['g' => 'male']]);
+        $v2 = new Variant(types: $t, cases: [$cls => ['g' => ['male', 'female']]]);
+        $this->assertNull($v1->merge($v2));
+    }
+
+    #[Test]
+    public function mergeVariantsStringNoConflictWithArray(): void
+    {
+        // caseA=string, value NOT in caseBArray -> string wins (line 93)
+        $cls = 'EugeneErg\\ICUMessageFormatParser\\DataTransferObjects\\Select';
+        $t = new Types([new Pattern('x')]);
+        $v1 = new Variant(types: $t, cases: [$cls => ['g' => 'other']]);
+        $v2 = new Variant(types: $t, cases: [$cls => ['g' => ['male', 'female']]]);
+        $result = $v1->merge($v2);
+        $this->assertInstanceOf(Variant::class, $result);
+        $this->assertSame('other', $result->cases[$cls]['g']);
+    }
+
+    #[Test]
+    public function mergeVariantsArrayConflictsWithString(): void
+    {
+        // caseBIsString + caseBString in valueArr -> null (lines 94-102)
+        $cls = 'EugeneErg\\ICUMessageFormatParser\\DataTransferObjects\\Select';
+        $t = new Types([new Pattern('x')]);
+        $v1 = new Variant(types: $t, cases: [$cls => ['g' => ['male', 'female']]]);
+        $v2 = new Variant(types: $t, cases: [$cls => ['g' => 'male']]);
+        $this->assertNull($v1->merge($v2));
+    }
 }

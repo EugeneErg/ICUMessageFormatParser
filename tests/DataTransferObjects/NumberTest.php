@@ -81,4 +81,12 @@ final class NumberTest extends TestCase
         $n = new Number('x', new Skeleton());
         $this->assertSame('{x, number}', (string) $n);
     }
+
+    #[Test]
+    public function withStringOptionCreatesMessage(): void
+    {
+        // string in options -> is_string path -> new Pattern($o) (line 73)
+        $n = Number::create('n', ['custom format']);
+        $this->assertSame('{n, number, custom format}', (string) $n);
+    }
 }
