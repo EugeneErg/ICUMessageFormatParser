@@ -33,7 +33,7 @@ $root = new Root(
             exclude: '[\\s\\}]',
             children: [
                 Parser::VARIABLE => new Item(
-                    startPattern: '[a-zA-Z_]',
+                    startPattern: '[a-zA-Z_0-9]',
                     endPattern: '[\\s\\}]',
                     includeStart: true,
                     includeEnd: false,

@@ -70,6 +70,71 @@ final class ParserTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
+    // Numeric (positional) placeholders, e.g. {0}, {1}
+    // -----------------------------------------------------------------------
+
+    #[Test]
+    public function parsesNumericVariable(): void
+    {
+        $types = $this->parser->parse('{0}');
+        $this->assertCount(1, $types->types);
+        $this->assertInstanceOf(Variable::class, $types->types[0]);
+        $this->assertSame('0', $types->types[0]->value);
+        $this->assertSame('{0}', (string) $types);
+    }
+
+    #[Test]
+    public function parsesMultiDigitNumericVariable(): void
+    {
+        $types = $this->parser->parse('{123}');
+        $this->assertInstanceOf(Variable::class, $types->types[0]);
+        $this->assertSame('123', $types->types[0]->value);
+        $this->assertSame('{123}', (string) $types);
+    }
+
+    #[Test]
+    public function parsesMultipleNumericVariablesInText(): void
+    {
+        $input = 'Hello {0}, you have {1} items';
+        $types = $this->parser->parse($input);
+        $this->assertSame($input, (string) $types);
+        $this->assertInstanceOf(Variable::class, $types->types[1]);
+        $this->assertSame('0', $types->types[1]->value);
+        $this->assertInstanceOf(Variable::class, $types->types[3]);
+        $this->assertSame('1', $types->types[3]->value);
+    }
+
+    #[Test]
+    public function parsesNumericVariableWithType(): void
+    {
+        $input = '{0, number}';
+        $types = $this->parser->parse($input);
+        $this->assertSame($input, (string) $types);
+        $this->assertInstanceOf(Number::class, $types->types[0]);
+        $this->assertSame('0', $types->types[0]->value);
+    }
+
+    #[Test]
+    public function parsesNumericVariableWithTypeAndStyle(): void
+    {
+        $input = '{0, number, integer}';
+        $types = $this->parser->parse($input);
+        $this->assertSame($input, (string) $types);
+        $this->assertInstanceOf(Number::class, $types->types[0]);
+        $this->assertSame('0', $types->types[0]->value);
+    }
+
+    #[Test]
+    public function parsesNumericVariableWithPlural(): void
+    {
+        $input = '{1, plural, one {# item} other {# items}}';
+        $types = $this->parser->parse($input);
+        $this->assertSame($input, (string) $types);
+        $this->assertInstanceOf(Plural::class, $types->types[0]);
+        $this->assertSame('1', $types->types[0]->value);
+    }
+
+    // -----------------------------------------------------------------------
     // Quoted text
     // -----------------------------------------------------------------------
 
